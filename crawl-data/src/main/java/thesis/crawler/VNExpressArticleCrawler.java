@@ -79,8 +79,8 @@ public class VNExpressArticleCrawler implements ArticleCrawler {
         try {
             Document document = Jsoup.connect(url).get();
             String title = find(document, VNExpressConst.CSS_QUERY.TITLE.getValue()).text();
-            String content = String.join("\n", find(document,
-                    VNExpressConst.CSS_QUERY.CONTENT_WITHOUT_AUTHOR.getValue()).eachText());
+            String content = StringUtils.replace(String.join("\n", find(document,
+                    VNExpressConst.CSS_QUERY.CONTENT_WITHOUT_AUTHOR.getValue()).eachText()), "\"", "'");
             if (StringUtils.isAnyBlank(title, content))
                 throw new Exception("Title or content is empty");
             String location = StringUtils.defaultIfBlank(find(document, VNExpressConst.CSS_QUERY.LOCATION.getValue()).text(), null);

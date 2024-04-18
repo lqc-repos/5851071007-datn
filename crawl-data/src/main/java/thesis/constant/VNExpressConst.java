@@ -45,7 +45,7 @@ public class VNExpressConst {
         LOCATION("p.description > span.location-stamp"),
         DESCRIPTION("p.description"),
         CONTENT("p.Normal"),
-        CONTENT_WITHOUT_AUTHOR("article > p.Normal:not([style])"),
+        CONTENT_WITHOUT_AUTHOR("article > p.Normal:not([style]):not([align])"),
         AUTHOR("article > p.Normal[style*=text-align:right;] > strong," +
                 "article > * > p.Normal[style*=text-align:right;] > strong," +
                 "article > p.Normal[align=right] > strong," +
