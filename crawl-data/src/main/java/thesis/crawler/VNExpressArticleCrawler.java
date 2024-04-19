@@ -2,7 +2,6 @@ package thesis.crawler;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -17,15 +16,19 @@ import thesis.constant.VNExpressConst;
 import thesis.error_article.ErrorArticle;
 import thesis.error_article.application.ErrorArticleApplicationImp;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Log4j2
 public class VNExpressArticleCrawler implements ArticleCrawler {
+    private static final long ONE_MONTH_IN_SECOND = 2629743L;
+    private static final long FIRST_DAY_OF_2023_IN_SECOND = 1672531200L;
+
     @Autowired
     private ArticleApplicationImp articleApplication;
     @Autowired
@@ -36,8 +39,12 @@ public class VNExpressArticleCrawler implements ArticleCrawler {
         List<String> urls = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(command.getUrls()))
             urls.addAll(command.getUrls());
-        if (CollectionUtils.isNotEmpty(command.getTopics()))
-            urls.addAll(getUrlsByTopics(command.getTopics()));
+        if (StringUtils.isNotBlank(command.getTopic()))
+            urls.addAll(getUrlsByTopics(command));
+        if (StringUtils.isNotBlank(command.getCategory())
+                && command.getFromDate() != null
+                && command.getToDate() != null)
+            urls.addAll(getUrlsBySearch(command));
         if (CollectionUtils.isEmpty(urls))
             return Collections.emptyList();
         verifyUrl(urls);
@@ -49,21 +56,17 @@ public class VNExpressArticleCrawler implements ArticleCrawler {
     }
 
     @Override
-    public Optional<Long> crawlAll(CommandCrawlArticle command) {
+    public Optional<Long> crawlByTopic() {
         AtomicLong count = new AtomicLong(0L);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
-        for (int i = 0; i < ObjectUtils.defaultIfNull(command.getPage(), VNExpressConst.PAGE_MAX); i++) {
-            for (String topic : VNExpressConst.TOPIC.getAllValues()) {
+        for (int i = 0; i < VNExpressConst.PAGE_MAX; i++) {
+            for (String topic : VNExpressConst.TOPIC.getValues()) {
                 final int page = i + 1;
                 log.info("Page: {} - Topic: {}", page, topic);
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     List<Article> articles = crawl(CommandCrawlArticle.builder()
-                            .topics(Collections.singletonList(
-                                    CommandCrawlArticle.Topic.builder()
-                                            .pages(Collections.singletonList(page))
-                                            .name(topic)
-                                            .build()
-                            ))
+                            .topic(topic)
+                            .page(page)
                             .build());
                     count.getAndAdd(articles.size());
                 });
@@ -75,18 +78,50 @@ public class VNExpressArticleCrawler implements ArticleCrawler {
         return Optional.of(count.get());
     }
 
+    @Override
+    public Optional<Long> crawlBySearch() {
+        AtomicLong count = new AtomicLong(0L);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        long toDate = System.currentTimeMillis() / 1000;
+        long fromDate = toDate - ONE_MONTH_IN_SECOND;
+        while (fromDate >= FIRST_DAY_OF_2023_IN_SECOND) {
+            for (String category : VNExpressConst.TOPIC.getCategoryIds()) {
+                final int page = new Random().nextInt(20) + 1;
+                long finalFromDate = fromDate;
+                long finalToDate = toDate;
+                log.info("Page: {} - category: {} - fromDate: {} - toDate: {}", page, category, fromDate, toDate);
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                    List<Article> articles = crawl(CommandCrawlArticle.builder()
+                            .category(category)
+                            .fromDate(finalFromDate)
+                            .toDate(finalToDate)
+                            .page(page)
+                            .build());
+                    count.getAndAdd(articles.size());
+                });
+                futures.add(future);
+            }
+            toDate = fromDate;
+            fromDate = toDate - ONE_MONTH_IN_SECOND;
+        }
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        allOf.join();
+        return Optional.of(count.get());
+    }
+
     private Article crawl(String url) {
         try {
             Document document = Jsoup.connect(url).get();
             String title = find(document, VNExpressConst.CSS_QUERY.TITLE.getValue()).text();
-            String content = StringUtils.replace(String.join("\n", find(document,
-                    VNExpressConst.CSS_QUERY.CONTENT_WITHOUT_AUTHOR.getValue()).eachText()), "\"", "'");
+            String content = String.join("\n", find(document,
+                    VNExpressConst.CSS_QUERY.CONTENT_WITHOUT_AUTHOR.getValue()).eachText());
             if (StringUtils.isAnyBlank(title, content))
                 throw new Exception("Title or content is empty");
             String location = StringUtils.defaultIfBlank(find(document, VNExpressConst.CSS_QUERY.LOCATION.getValue()).text(), null);
 //            String description = Optional.ofNullable(find(document, VNExpressConst.CSS_QUERY.DESCRIPTION.getValue()).first()).map(Element::ownText)
 //                    .orElse(find(document, VNExpressConst.CSS_QUERY.DESCRIPTION.getValue()).text());
             String description = find(document, VNExpressConst.CSS_QUERY.DESCRIPTION.getValue()).first().ownText();
+            Long publicationTime = getPublicationTime(find(document, VNExpressConst.CSS_QUERY.PUBLICATION_DATE.getValue()).text());
             List<String> authors = Arrays.stream(find(document,
                             VNExpressConst.CSS_QUERY.AUTHOR.getValue()).text().split("[-–]"))
                     .map(String::trim).collect(Collectors.toList());
@@ -108,6 +143,7 @@ public class VNExpressArticleCrawler implements ArticleCrawler {
                     .title(title)
                     .location(location)
                     .description(description)
+                    .publicationDate(publicationTime)
                     .content(content)
                     .authors(authors)
                     .topics(topics)
@@ -124,27 +160,49 @@ public class VNExpressArticleCrawler implements ArticleCrawler {
         return null;
     }
 
-    private List<String> getUrlsByTopics(List<CommandCrawlArticle.Topic> topics) {
-        return topics.parallelStream().flatMap(topic -> {
-            if (StringUtils.isBlank(topic.getName()) || CollectionUtils.isEmpty(topic.getPages()))
-                return Stream.empty();
-            return topic.getPages().parallelStream().flatMap(page -> {
-                try {
-                    Document document = Jsoup.connect(String.format(VNExpressConst.TOPIC_URL_FORMATTER,
-                            topic.getName(), page)).get();
-                    Elements titles = find(document, ".title-news");
-                    if (CollectionUtils.isEmpty(titles))
-                        return Stream.empty();
-                    return titles.stream().map(title -> {
-                        Element element = title.select("a").first();
-                        return element.attr("href");
-                    }).filter(Objects::nonNull);
-                } catch (Exception ex) {
-                    log.warn(ex.getMessage(), ex);
-                }
-                return Stream.empty();
-            });
-        }).collect(Collectors.toList());
+    private List<String> getUrlsByTopics(CommandCrawlArticle command) {
+        if (StringUtils.isBlank(command.getTopic()) || command.getPage() == null)
+            return Collections.emptyList();
+        try {
+            Document document = Jsoup.connect(String.format(VNExpressConst.TOPIC_URL_FORMATTER,
+                    command.getTopic(), command.getPage())).get();
+            return crawlUrls(document);
+        } catch (Exception ex) {
+            log.warn(ex.getMessage(), ex);
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> getUrlsBySearch(CommandCrawlArticle command) {
+        if (StringUtils.isBlank(command.getCategory())
+                || command.getFromDate() == null || command.getToDate() == null || command.getPage() == null)
+            return Collections.emptyList();
+        try {
+            String url = String.format(VNExpressConst.CATEGORY_URL_FORMATTER,
+                    command.getCategory(), command.getFromDate(), command.getToDate(), command.getPage());
+            log.info("--- Url: {}", url);
+            Document document = Jsoup.connect(url).get();
+            return crawlUrls(document);
+        } catch (Exception ex) {
+            log.warn(ex.getMessage(), ex);
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> crawlUrls(Document document) {
+        Elements titles = find(document, ".title-news");
+        if (CollectionUtils.isEmpty(titles))
+            return Collections.emptyList();
+        return titles.stream().map(title -> {
+            Element element = title.select("a").first();
+            return element.attr("href");
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    private Long getPublicationTime(String timeStr) {
+        timeStr = timeStr.substring(timeStr.indexOf(",") + 1, timeStr.indexOf("(")).trim();
+        LocalDateTime localDateTime = LocalDateTime.parse(timeStr, VNExpressConst.dateTimeFormatter);
+        return localDateTime.atZone(ZoneId.of("GMT+7")).toInstant().toEpochMilli();
     }
 
     private void verifyUrl(List<String> originUrls) {

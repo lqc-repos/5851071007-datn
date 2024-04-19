@@ -11,7 +11,9 @@ import java.util.Optional;
 public interface ArticleCrawler {
     List<Article> crawl(CommandCrawlArticle command);
 
-    Optional<Long> crawlAll(CommandCrawlArticle command);
+    Optional<Long> crawlByTopic();
+
+    Optional<Long> crawlBySearch();
 
     default Elements find(Document document, String cssQuery) {
         return document.select(cssQuery);

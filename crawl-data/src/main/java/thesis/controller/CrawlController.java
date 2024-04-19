@@ -3,7 +3,10 @@ package thesis.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 import thesis.article.Article;
 import thesis.command.CommandCrawlArticle;
 import thesis.crawler.VNExpressArticleCrawler;
@@ -20,12 +23,13 @@ public class CrawlController {
         return new ResponseEntity<>(vnExpressArticleCrawler.crawl(command), HttpStatus.OK);
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/crawl-all-article")
-    public ResponseEntity<Long> crawlAllArticle(@RequestParam(required = false) Integer page) {
-        return new ResponseEntity<>(vnExpressArticleCrawler.crawlAll(
-                CommandCrawlArticle.builder()
-                        .page(page)
-                        .build()).orElse(0L),
-                HttpStatus.OK);
+    @RequestMapping(method = RequestMethod.GET, value = "/crawl-by-topic")
+    public ResponseEntity<Long> crawlByTopic() {
+        return new ResponseEntity<>(vnExpressArticleCrawler.crawlByTopic().orElse(0L), HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/crawl-by-search")
+    public ResponseEntity<Long> crawlBySearch() {
+        return new ResponseEntity<>(vnExpressArticleCrawler.crawlBySearch().orElse(0L), HttpStatus.OK);
     }
 }

@@ -11,15 +11,9 @@ import java.util.List;
 @ToString
 public class CommandCrawlArticle {
     private List<String> urls;
-    private List<Topic> topics;
+    private String topic;
+    private String category;
+    private Long fromDate;
+    private Long toDate;
     private Integer page;
-
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Data
-    @Builder
-    public static class Topic {
-        private String name;
-        private List<Integer> pages;
-    }
 }
