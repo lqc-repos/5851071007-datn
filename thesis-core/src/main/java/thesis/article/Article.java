@@ -22,6 +22,7 @@ public class Article extends CommonDTO {
     private String description;
     private String content;
     private String url;
+    private Long publicationDate;
     private List<String> authors;
     private List<String> topics;
     private List<String> labels;
