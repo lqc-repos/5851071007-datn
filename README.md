@@ -30,4 +30,5 @@ Ngành: Công nghệ thông tin
 
 **Tuần 3 (15/04 - 21/04)**
 - Tìm hiểu về NLP:
-- Thu thập dữ liệu từ các trang báo
+- Thu thập dữ liệu từ trang báo VNExpress
+- Xây dựng model POS Tagger để gán nhãn từ loại
