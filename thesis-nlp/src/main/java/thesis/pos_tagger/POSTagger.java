@@ -1,4 +1,4 @@
-package thesis.POSTagger;
+package thesis.pos_tagger;
 
 import edu.stanford.nlp.ling.TaggedWord;
 import edu.stanford.nlp.tagger.maxent.MaxentTagger;
