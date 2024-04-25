@@ -1,34 +1,34 @@
 package thesis.pos_tagger;
 
-import edu.stanford.nlp.ling.TaggedWord;
-import edu.stanford.nlp.tagger.maxent.MaxentTagger;
+import edu.stanford.nlp.ie.crf.CRFClassifier;
+import edu.stanford.nlp.ling.CoreLabel;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 public class POSTagger {
     public static void trainModel() throws Exception {
-        List<String> tempConfigs = new ArrayList<>();
         Properties properties = new Properties();
-        InputStream input = POSTagger.class.getResourceAsStream("/pos-tagger/configs.properties");
+        InputStream input = POSTagger.class.getResourceAsStream("/pos/configs.properties");
         properties.load(input);
-        properties.forEach((key, value) -> {
-            tempConfigs.add("-" + key);
-            tempConfigs.add(value.toString());
-        });
-        MaxentTagger.main(tempConfigs.toArray(new String[0]));
+        CRFClassifier<CoreLabel> crfClassifier = new CRFClassifier<>(properties);
+        crfClassifier.train();
+        crfClassifier.serializeClassifier(properties.getProperty("serializeTo"));
     }
 
-    public static void getTag(String text) {
-        String modelPath = POSTagger.class.getResource("/pos-tagger/vi-model.tagger").getPath();
-        MaxentTagger tagger = new MaxentTagger(modelPath);
-        for (String token : text.split(" ")) {
-            TaggedWord taggedWord = new TaggedWord(token);
-            List<TaggedWord> taggedWords = tagger.tagSentence(Arrays.asList(taggedWord));
-            System.out.println(taggedWords.get(0).word() + " - " + taggedWords.get(0).tag());
-        }
+    public static void continueTrain() throws Exception {
+        Properties properties = new Properties();
+        InputStream input = POSTagger.class.getResourceAsStream("/pos/configs.properties");
+        properties.load(input);
+        CRFClassifier<CoreLabel> crfClassifier = new CRFClassifier<>(properties);
+        crfClassifier.loadClassifier(properties.getProperty("serializeTo"));
+        crfClassifier.train(properties.getProperty("trainFile"));
+        crfClassifier.serializeClassifier(properties.getProperty("serializeTo"));
+    }
+
+    public static void getTag(String text) throws Exception {
+        CRFClassifier<CoreLabel> crfClassifier = CRFClassifier.getClassifier("D:/Learning/Repository/DATN/nlp-repository/thesis-nlp/src/main/resources/pos/pos-tagger.ser.gz");
+        String tagged = crfClassifier.classifyToString(text);
+        System.out.println(tagged);
     }
 }
