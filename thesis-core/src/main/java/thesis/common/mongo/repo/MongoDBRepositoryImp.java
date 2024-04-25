@@ -41,7 +41,7 @@ public abstract class MongoDBRepositoryImp<Clazz extends CommonDTO> implements M
     @Override
     public Optional<Boolean> insert(Clazz object) {
         object.setIsDeleted(false);
-        object.setCreatedDate(System.currentTimeMillis());
+        object.setCreatedDate(System.currentTimeMillis() / 1000);
         Boolean results = getMongoDBOperation().insert(object);
         return Optional.ofNullable(results);
     }
@@ -50,7 +50,7 @@ public abstract class MongoDBRepositoryImp<Clazz extends CommonDTO> implements M
     public Optional<Boolean> insertMany(List<Clazz> objects) {
         objects.forEach(obj -> {
             obj.setIsDeleted(false);
-            obj.setCreatedDate(System.currentTimeMillis());
+            obj.setCreatedDate(System.currentTimeMillis() / 1000);
         });
         Boolean results = getMongoDBOperation().insertMany(objects);
         return Optional.ofNullable(results);
@@ -60,7 +60,7 @@ public abstract class MongoDBRepositoryImp<Clazz extends CommonDTO> implements M
     public Optional<Boolean> update(Map<String, Object> query, Map<String, Object> data) {
         Document queryDoc = new Document(query);
         Document updateDoc = new Document(data);
-        updateDoc.put("updatedDate", System.currentTimeMillis());
+        updateDoc.put("updatedDate", System.currentTimeMillis() / 1000);
         Boolean results = getMongoDBOperation().update(queryDoc, updateDoc);
         return Optional.ofNullable(results);
     }

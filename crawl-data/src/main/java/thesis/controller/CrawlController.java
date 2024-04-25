@@ -29,7 +29,7 @@ public class CrawlController {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/crawl-by-search")
-    public ResponseEntity<Long> crawlBySearch() {
-        return new ResponseEntity<>(vnExpressArticleCrawler.crawlBySearch().orElse(0L), HttpStatus.OK);
+    public ResponseEntity<Boolean> crawlBySearch() {
+        return new ResponseEntity<>(vnExpressArticleCrawler.crawlBySearch().orElse(Boolean.FALSE), HttpStatus.OK);
     }
 }

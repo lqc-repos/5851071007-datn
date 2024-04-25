@@ -13,7 +13,7 @@ public interface ArticleCrawler {
 
     Optional<Long> crawlByTopic();
 
-    Optional<Long> crawlBySearch();
+    Optional<Boolean> crawlBySearch();
 
     default Elements find(Document document, String cssQuery) {
         return document.select(cssQuery);

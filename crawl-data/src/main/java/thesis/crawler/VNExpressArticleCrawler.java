@@ -10,29 +10,37 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.article.Article;
-import thesis.article.application.ArticleApplicationImp;
+import thesis.article.application.ArticleApplication;
 import thesis.command.CommandCrawlArticle;
 import thesis.constant.VNExpressConst;
+import thesis.crawled_article.CrawledArticle;
+import thesis.crawled_article.application.CrawledArticleApplication;
 import thesis.error_article.ErrorArticle;
-import thesis.error_article.application.ErrorArticleApplicationImp;
+import thesis.error_article.application.ErrorArticleApplication;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Log4j2
 public class VNExpressArticleCrawler implements ArticleCrawler {
-    private static final long ONE_MONTH_IN_SECOND = 2629743L;
-    private static final long FIRST_DAY_OF_2023_IN_SECOND = 1672531200L;
+    private static final LocalDateTime CURRENT_CRAWLED_DATE = LocalDateTime.now().with(LocalTime.MAX);
+    private static final LocalDateTime MIN_CRAWLED_DATE = LocalDateTime.now().minusYears(2).withDayOfMonth(1).withMonth(1).with(LocalTime.MIN);
+    private static final ZoneId zoneId = ZoneId.of("GMT+7");
 
     @Autowired
-    private ArticleApplicationImp articleApplication;
+    private ArticleApplication articleApplication;
     @Autowired
-    private ErrorArticleApplicationImp errorArticleApplicationImp;
+    private ErrorArticleApplication errorArticleApplicationImp;
+    @Autowired
+    private CrawledArticleApplication crawledArticleApplication;
 
     @Override
     public List<Article> crawl(CommandCrawlArticle command) {
@@ -79,34 +87,39 @@ public class VNExpressArticleCrawler implements ArticleCrawler {
     }
 
     @Override
-    public Optional<Long> crawlBySearch() {
-        AtomicLong count = new AtomicLong(0L);
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        long toDate = System.currentTimeMillis() / 1000;
-        long fromDate = toDate - ONE_MONTH_IN_SECOND;
-        while (fromDate >= FIRST_DAY_OF_2023_IN_SECOND) {
+    public Optional<Boolean> crawlBySearch() {
+        LocalDateTime toDate = CURRENT_CRAWLED_DATE;
+        LocalDateTime fromDate = toDate.minusMonths(1);
+        while (MIN_CRAWLED_DATE.isBefore(fromDate)) {
+            final LocalDateTime finalFromDate = fromDate;
+            final LocalDateTime finalToDate = toDate;
             for (String category : VNExpressConst.TOPIC.getCategoryIds()) {
-                final int page = new Random().nextInt(20) + 1;
-                long finalFromDate = fromDate;
-                long finalToDate = toDate;
-                log.info("Page: {} - category: {} - fromDate: {} - toDate: {}", page, category, fromDate, toDate);
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    List<Article> articles = crawl(CommandCrawlArticle.builder()
-                            .category(category)
-                            .fromDate(finalFromDate)
-                            .toDate(finalToDate)
-                            .page(page)
-                            .build());
-                    count.getAndAdd(articles.size());
-                });
-                futures.add(future);
+                IntStream.generate(() -> ThreadLocalRandom.current().nextInt(1, 21))
+                        .distinct()
+                        .limit(5)
+                        .forEach(page -> {
+//                            log.info("Page: {} - category: {} - fromDate: {} - toDate: {}", page, category, finalFromDate, finalToDate);
+                            crawledArticleApplication.add(CrawledArticle.builder()
+                                    .crawledDate(CURRENT_CRAWLED_DATE.atZone(zoneId).toEpochSecond())
+                                    .category(category)
+                                    .fromDate(finalFromDate.atZone(zoneId).toEpochSecond())
+                                    .toDate(finalToDate.atZone(zoneId).toEpochSecond())
+                                    .page(page)
+                                    .build());
+                            CompletableFuture.runAsync(() -> {
+                                List<Article> articles = crawl(CommandCrawlArticle.builder()
+                                        .category(category)
+                                        .fromDate(finalFromDate.atZone(zoneId).toEpochSecond())
+                                        .toDate(finalToDate.atZone(zoneId).toEpochSecond())
+                                        .page(page)
+                                        .build());
+                            });
+                        });
             }
             toDate = fromDate;
-            fromDate = toDate - ONE_MONTH_IN_SECOND;
+            fromDate = toDate.minusMonths(1);
         }
-        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        allOf.join();
-        return Optional.of(count.get());
+        return Optional.of(Boolean.TRUE);
     }
 
     private Article crawl(String url) {
@@ -202,7 +215,7 @@ public class VNExpressArticleCrawler implements ArticleCrawler {
     private Long getPublicationTime(String timeStr) {
         timeStr = timeStr.substring(timeStr.indexOf(",") + 1, timeStr.indexOf("(")).trim();
         LocalDateTime localDateTime = LocalDateTime.parse(timeStr, VNExpressConst.dateTimeFormatter);
-        return localDateTime.atZone(ZoneId.of("GMT+7")).toInstant().toEpochMilli();
+        return localDateTime.atZone(zoneId).toEpochSecond();
     }
 
     private void verifyUrl(List<String> originUrls) {
