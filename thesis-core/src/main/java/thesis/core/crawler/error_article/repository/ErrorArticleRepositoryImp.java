@@ -2,8 +2,8 @@ package thesis.core.crawler.error_article.repository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-import thesis.core.utils.mongo.operator.MongoDBOperatorImp;
-import thesis.core.utils.mongo.repo.MongoDBRepositoryImp;
+import thesis.utils.mongo.operator.MongoDBOperatorImp;
+import thesis.utils.mongo.repo.MongoDBRepositoryImp;
 import thesis.core.crawler.error_article.ErrorArticle;
 
 @Repository

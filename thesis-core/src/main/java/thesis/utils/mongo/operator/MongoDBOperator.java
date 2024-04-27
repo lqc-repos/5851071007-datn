@@ -1,4 +1,4 @@
-package thesis.core.utils.mongo.operator;
+package thesis.utils.mongo.operator;
 
 import org.bson.Document;
 

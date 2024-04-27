@@ -1,4 +1,4 @@
-package thesis.core.utils.dto;
+package thesis.utils.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

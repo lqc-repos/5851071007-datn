@@ -1,4 +1,4 @@
-package thesis.core.utils.mongo.provider;
+package thesis.utils.mongo.provider;
 
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;

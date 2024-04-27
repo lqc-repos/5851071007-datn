@@ -1,7 +1,7 @@
-package thesis.core.utils.mongo.repo;
+package thesis.utils.mongo.repo;
 
 import org.bson.Document;
-import thesis.core.utils.dto.CommonDTO;
+import thesis.utils.dto.CommonDTO;
 
 import java.util.List;
 import java.util.Map;

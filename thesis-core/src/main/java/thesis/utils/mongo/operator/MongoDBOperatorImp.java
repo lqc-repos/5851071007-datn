@@ -1,10 +1,10 @@
-package thesis.core.utils.mongo.operator;
+package thesis.utils.mongo.operator;
 
 import com.mongodb.client.MongoCollection;
 import org.apache.commons.collections4.MapUtils;
 import org.bson.BsonValue;
 import org.bson.Document;
-import thesis.core.utils.mongo.provider.MongoDBProvider;
+import thesis.utils.mongo.provider.MongoDBProvider;
 
 import java.util.ArrayList;
 import java.util.List;

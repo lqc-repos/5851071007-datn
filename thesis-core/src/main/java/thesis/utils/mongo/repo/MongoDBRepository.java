@@ -1,7 +1,7 @@
-package thesis.core.utils.mongo.repo;
+package thesis.utils.mongo.repo;
 
 import org.bson.Document;
-import thesis.core.utils.mongo.operator.MongoDBOperatorImp;
+import thesis.utils.mongo.operator.MongoDBOperatorImp;
 
 import java.util.List;
 import java.util.Map;

@@ -83,6 +83,11 @@
             <artifactId>stanford-corenlp</artifactId>
             <version>4.5.6</version>
         </dependency>
+        <dependency>
+            <groupId>VnCoreNLP</groupId>
+            <artifactId>VnCoreNLP</artifactId>
+            <version>1.2</version>
+        </dependency>
     </dependencies>
 
     <build>
