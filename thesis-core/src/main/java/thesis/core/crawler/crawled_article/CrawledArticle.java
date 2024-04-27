@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 import org.bson.types.ObjectId;
-import thesis.common.dto.CommonDTO;
+import thesis.core.utils.dto.CommonDTO;
 
 import java.util.List;
 

@@ -2,8 +2,8 @@ package thesis.core.crawler.crawled_article_log.repository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import thesis.common.mongo.operator.MongoDBOperatorImp;
-import thesis.common.mongo.repo.MongoDBRepositoryImp;
+import thesis.core.utils.mongo.operator.MongoDBOperatorImp;
+import thesis.core.utils.mongo.repo.MongoDBRepositoryImp;
 import thesis.core.crawler.crawled_article_log.CrawledArticleLog;
 
 @Service

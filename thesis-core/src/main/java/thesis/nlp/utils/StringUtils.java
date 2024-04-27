@@ -1,4 +1,4 @@
-package thesis.common.utils;
+package thesis.nlp.utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

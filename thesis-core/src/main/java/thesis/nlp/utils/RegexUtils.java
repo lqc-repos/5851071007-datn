@@ -1,4 +1,4 @@
-package thesis.common.utils;
+package thesis.nlp.utils;
 
 import java.util.ArrayList;
 import java.util.List;

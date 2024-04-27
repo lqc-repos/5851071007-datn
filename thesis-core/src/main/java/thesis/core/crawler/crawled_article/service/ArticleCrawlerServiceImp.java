@@ -9,7 +9,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import thesis.common.constant.VNExpressConst;
+import thesis.core.utils.constant.VNExpressConst;
 import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.core.crawler.crawled_article.command.CommandCrawlArticle;
 import thesis.core.crawler.crawled_article_log.CrawledArticleLog;

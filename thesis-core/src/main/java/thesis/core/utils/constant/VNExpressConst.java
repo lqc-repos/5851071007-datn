@@ -1,4 +1,4 @@
-package thesis.common.constant;
+package thesis.core.utils.constant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

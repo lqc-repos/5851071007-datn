@@ -1,4 +1,4 @@
-package thesis.common.constant;
+package thesis.nlp.utils.constant;
 
 import java.util.Set;
 

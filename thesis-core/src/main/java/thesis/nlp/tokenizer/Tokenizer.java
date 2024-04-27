@@ -1,8 +1,8 @@
 package thesis.nlp.tokenizer;
 
-import thesis.common.constant.TokenizerConst;
-import thesis.common.utils.RegexUtils;
-import thesis.common.utils.StringUtils;
+import thesis.nlp.utils.constant.TokenizerConst;
+import thesis.nlp.utils.RegexUtils;
+import thesis.nlp.utils.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
