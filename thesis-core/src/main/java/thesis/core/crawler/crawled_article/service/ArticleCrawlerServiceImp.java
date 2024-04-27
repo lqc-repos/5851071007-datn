@@ -9,13 +9,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import thesis.utils.constant.VNExpressConst;
 import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.core.crawler.crawled_article.command.CommandCrawlArticle;
 import thesis.core.crawler.crawled_article_log.CrawledArticleLog;
 import thesis.core.crawler.crawled_article_log.service.CrawledArticleLogService;
 import thesis.core.crawler.error_article.ErrorArticle;
 import thesis.core.crawler.error_article.service.ErrorArticleService;
+import thesis.utils.constant.VNExpressConst;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;

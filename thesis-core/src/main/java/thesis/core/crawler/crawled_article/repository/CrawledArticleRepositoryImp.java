@@ -2,9 +2,9 @@ package thesis.core.crawler.crawled_article.repository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.utils.mongo.operator.MongoDBOperatorImp;
 import thesis.utils.mongo.repo.MongoDBRepositoryImp;
-import thesis.core.crawler.crawled_article.CrawledArticle;
 
 @Repository
 public class CrawledArticleRepositoryImp extends MongoDBRepositoryImp<CrawledArticle> implements CrawledArticleRepository {
