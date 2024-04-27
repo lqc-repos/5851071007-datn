@@ -1,0 +1,3 @@
+dữ_liệu N
+xóa V
+rồi N

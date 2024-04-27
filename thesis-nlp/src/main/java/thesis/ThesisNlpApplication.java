@@ -1,11 +1,13 @@
 package thesis;
 
-//import thesis.nlp.pos_tagger.service.POSTagger;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@SpringBootApplication
 public class ThesisNlpApplication {
 
-    public static void main(String[] args) throws Exception {
-//        POSTagger.trainModel();
-//        POSTagger.getTag("Đây là dữ liệu để thử");
+    public static void main(String[] args) {
+        SpringApplication.run(ThesisNlpApplication.class, args);
     }
+
 }
