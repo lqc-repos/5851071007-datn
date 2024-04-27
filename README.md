@@ -31,8 +31,8 @@ Ngành: Công nghệ thông tin
 **Tuần 3 (15/04 - 21/04)**
 - Tìm hiểu về NLP:
 - Thu thập dữ liệu từ trang báo VNExpress
-- Xây dựng model POS Tagger để gán nhãn từ loại
+- Sử dụng model POS Tagger - VnCoreNLP để gán nhãn từ loại
 
 **Tuần 4 (22/04 - 28/04)**
 - Tìm hiểu về NLP:
-- Xử lý dữ liệu: phân loại, gắn nhãn cho tệp dữ liệu 
+- Sử dụng model POS Tagger - VnCoreNLP để gán nhãn từ loại
