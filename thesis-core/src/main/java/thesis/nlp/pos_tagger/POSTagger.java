@@ -1,4 +1,4 @@
-package thesis.core.nlp.pos_tagger;
+package thesis.nlp.pos_tagger;
 
 import edu.stanford.nlp.ie.crf.CRFClassifier;
 import edu.stanford.nlp.ling.CoreLabel;

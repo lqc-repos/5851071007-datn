@@ -1,4 +1,4 @@
-package thesis.core.nlp.tokenizer;
+package thesis.nlp.tokenizer;
 
 import thesis.common.constant.TokenizerConst;
 import thesis.common.utils.RegexUtils;
