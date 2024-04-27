@@ -1,6 +1,6 @@
 package thesis;
 
-import thesis.pos_tagger.POSTagger;
+import thesis.core.nlp.pos_tagger.POSTagger;
 
 public class ThesisNlpApplication {
 
