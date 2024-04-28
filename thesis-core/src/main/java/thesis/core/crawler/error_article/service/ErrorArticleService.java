@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface ErrorArticleService {
-    List<ErrorArticle> findByUrls(List<String> urls);
+    List<ErrorArticle> getByUrls(List<String> urls);
 
     Optional<ErrorArticle> getOne(Map<String, Object> query);
 

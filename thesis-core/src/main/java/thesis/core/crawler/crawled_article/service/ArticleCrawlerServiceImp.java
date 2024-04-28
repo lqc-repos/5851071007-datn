@@ -219,12 +219,12 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
 
     private void verifyUrl(List<String> originUrls) {
         originUrls.removeIf(url -> url.contains("https://video."));
-        List<CrawledArticle> crawledArticles = crawledArticleService.findByUrls(originUrls);
+        List<CrawledArticle> crawledArticles = crawledArticleService.getByUrls(originUrls);
         if (CollectionUtils.isNotEmpty(crawledArticles)) {
             List<String> existedUrls = crawledArticles.stream().map(CrawledArticle::getUrl).toList();
             originUrls.removeIf(existedUrls::contains);
         }
-        List<ErrorArticle> errorArticles = errorArticleService.findByUrls(originUrls);
+        List<ErrorArticle> errorArticles = errorArticleService.getByUrls(originUrls);
         if (CollectionUtils.isNotEmpty(errorArticles)) {
             List<String> existedUrls = errorArticles.stream().map(ErrorArticle::getUrl).toList();
             originUrls.removeIf(existedUrls::contains);

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CrawledArticleService {
-    List<CrawledArticle> findByUrls(List<String> urls);
+    List<CrawledArticle> getByUrls(List<String> urls);
 
     Optional<Boolean> add(CrawledArticle crawledArticle);
 

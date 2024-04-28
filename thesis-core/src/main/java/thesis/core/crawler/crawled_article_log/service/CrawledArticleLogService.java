@@ -7,9 +7,5 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface CrawledArticleLogService {
-    List<CrawledArticleLog> findByUrls(List<String> urls);
-
-    Optional<CrawledArticleLog> getOne(Map<String, Object> query);
-
     Optional<Boolean> add(CrawledArticleLog crawledArticleLog);
 }

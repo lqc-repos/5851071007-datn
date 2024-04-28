@@ -17,7 +17,7 @@ public class ErrorArticleServiceImp implements ErrorArticleService {
     private ErrorArticleRepositoryImp errorArticleRepository;
 
     @Override
-    public List<ErrorArticle> findByUrls(List<String> urls) {
+    public List<ErrorArticle> getByUrls(List<String> urls) {
         Map<String, Object> query = new HashMap<>();
         query.put("url", new org.bson.Document("$in", urls));
         return errorArticleRepository.findAll(query, new Document(), new Document());
