@@ -46,10 +46,10 @@ public class AlgorithmServiceImp implements AlgorithmService {
                     .build());
             List<Article> articles = new ArrayList<>(crawledArticles.stream().map(crawledArticle -> Article.builder()
                     .url(crawledArticle.getUrl())
-                    .title(crawledArticle.getTitle())
+                    .title(crawledArticle.getTitle().replaceAll("_", "-"))
                     .location(crawledArticle.getLocation())
-                    .description(crawledArticle.getDescription())
-                    .content(crawledArticle.getContent())
+                    .description(crawledArticle.getDescription().replaceAll("_", "-"))
+                    .content(crawledArticle.getContent().replaceAll("_", "-"))
                     .publicationDate(crawledArticle.getPublicationDate())
                     .authors(crawledArticle.getAuthors())
                     .topics(crawledArticle.getTopics())
@@ -67,9 +67,11 @@ public class AlgorithmServiceImp implements AlgorithmService {
     public Optional<Boolean> storageFrequency() throws Exception {
         Set<String> existedTotalLabels = totalAlgorithmLabelService.getExistedLabel();
         Long totalArticle = articleService.count(CommandQueryArticle.builder().build()).orElseThrow();
+        log.info("=== total page: {}", totalArticle);
         int sizePerPage = 50, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
         Set<String> urls = new HashSet<>();
         for (int i = 0; i < totalPage; i++) {
+            log.info("-=== current page: {}", i + 1);
             List<ArticleAlgorithmLabel> articleAlgorithmLabels = new ArrayList<>();
             Map<String, Long> totalByLabel = new HashMap<>();
             List<Article> articles = articleService.getMany(CommandQueryArticle.builder()
@@ -79,47 +81,52 @@ public class AlgorithmServiceImp implements AlgorithmService {
                     .size(sizePerPage)
                     .build());
             for (Article article : articles) {
-                if (urls.contains(article.getUrl()))
-                    continue;
-                String contentBuilder = article.getTitle() + "\n" +
-                        article.getDescription() + "\n" +
-                        article.getContent() + "\n";
-                Optional<AnnotatedWord> annotatedWordOptional = nlpService.annotate(contentBuilder);
-                if (annotatedWordOptional.isEmpty()) {
-                    log.warn("Cannot annotate articleId {}", article.getId().toString());
-                    continue;
+                try {
+                    if (urls.contains(article.getUrl()))
+                        continue;
+                    String contentBuilder = article.getTitle() + "\n" +
+                            article.getDescription() + "\n" +
+                            article.getContent() + "\n";
+                    Optional<AnnotatedWord> annotatedWordOptional = nlpService.annotate(contentBuilder);
+                    if (annotatedWordOptional.isEmpty()) {
+                        log.warn("Cannot annotate articleId {}", article.getId().toString());
+                        continue;
+                    }
+                    AnnotatedWord annotatedWord = annotatedWordOptional.get();
+                    Map<String, Long> countByLabelSorted = annotatedWord.getTaggedWords().stream()
+                            .collect(Collectors.collectingAndThen(
+                                    Collectors.groupingBy(AnnotatedWord.TaggedWord::getWord, Collectors.counting()),
+                                    map -> map.entrySet().stream()
+                                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                                                    (oldValue, newValue) -> oldValue, LinkedHashMap::new))
+                            ));
+                    countByLabelSorted.keySet().forEach(key -> {
+                        if (!totalByLabel.containsKey(key))
+                            totalByLabel.put(key, 1L);
+                        else
+                            totalByLabel.put(key, totalByLabel.get(key) + 1);
+                    });
+                    long totalLabel = countByLabelSorted.values().stream().mapToLong(m -> m).sum();
+                    ArticleAlgorithmLabel articleAlgorithmLabel = ArticleAlgorithmLabel.builder()
+                            .articleId(article.getId().toString())
+                            .totalLabel(totalLabel)
+                            .labels(countByLabelSorted.entrySet().stream()
+                                    .map(k -> ArticleAlgorithmLabel.LabelPerArticle.builder()
+                                            .label(k.getKey())
+                                            .count(k.getValue())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build();
+                    articleAlgorithmLabels.add(articleAlgorithmLabel);
+                    urls.add(article.getUrl());
+                } catch (Exception ex) {
+                    log.warn("Annotate is error, article url: {}", article.getUrl());
                 }
-                AnnotatedWord annotatedWord = annotatedWordOptional.get();
-                Map<String, Long> countByLabelSorted = annotatedWord.getTaggedWords().stream()
-                        .collect(Collectors.collectingAndThen(
-                                Collectors.groupingBy(AnnotatedWord.TaggedWord::getWord, Collectors.counting()),
-                                map -> map.entrySet().stream()
-                                        .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                                                (oldValue, newValue) -> oldValue, LinkedHashMap::new))
-                        ));
-                countByLabelSorted.keySet().forEach(key -> {
-                    if (!totalByLabel.containsKey(key))
-                        totalByLabel.put(key, 1L);
-                    else
-                        totalByLabel.put(key, totalByLabel.get(key) + 1);
-                });
-                long totalLabel = countByLabelSorted.values().stream().mapToLong(m -> m).sum();
-                ArticleAlgorithmLabel articleAlgorithmLabel = ArticleAlgorithmLabel.builder()
-                        .articleId(article.getId().toString())
-                        .totalLabel(totalLabel)
-                        .labels(countByLabelSorted.entrySet().stream()
-                                .map(k -> ArticleAlgorithmLabel.LabelPerArticle.builder()
-                                        .label(k.getKey())
-                                        .count(k.getValue())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build();
-                articleAlgorithmLabels.add(articleAlgorithmLabel);
-                urls.add(article.getUrl());
             }
             articleAlgorithmLabelService.addMany(articleAlgorithmLabels);
             totalAlgorithmLabelService.increase(existedTotalLabels, totalByLabel);
+            log.info("=== end page: {} - articleAlgorithmLabels: {} - totalByLabel: {}", i + 1, articleAlgorithmLabels.size(), totalByLabel.size());
         }
         return Optional.of(Boolean.TRUE);
     }
