@@ -62,7 +62,7 @@ public class AlgorithmServiceImp implements AlgorithmService {
     }
 
     @Override
-    public Optional<Boolean> makeTermFrequency() throws Exception {
+    public Optional<Boolean> saveFrequency() throws Exception {
         Set<String> existedTotalLabels = totalAlgorithmLabelService.getExistedLabel();
         Long totalArticle = articleService.count(CommandQueryArticle.builder().build()).orElseThrow();
         int sizePerPage = 50, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
@@ -119,11 +119,6 @@ public class AlgorithmServiceImp implements AlgorithmService {
             articleAlgorithmLabelService.addMany(articleAlgorithmLabels);
             totalAlgorithmLabelService.increase(existedTotalLabels, totalByLabel);
         }
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<Boolean> makeInverseDocumentFrequency() {
         return Optional.empty();
     }
 }

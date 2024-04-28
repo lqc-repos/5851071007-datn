@@ -5,7 +5,5 @@ import java.util.Optional;
 public interface AlgorithmService {
     Optional<Boolean> migrateArticle();
 
-    Optional<Boolean> makeTermFrequency() throws Exception;
-
-    Optional<Boolean> makeInverseDocumentFrequency();
+    Optional<Boolean> saveFrequency() throws Exception;
 }

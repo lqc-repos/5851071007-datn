@@ -36,7 +36,7 @@ public class AlgorithmController {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(algorithmService.makeTermFrequency())
+                    .data(algorithmService.saveFrequency())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
