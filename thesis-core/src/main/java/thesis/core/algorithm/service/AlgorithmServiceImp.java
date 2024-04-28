@@ -46,6 +46,8 @@ public class AlgorithmServiceImp implements AlgorithmService {
                     .build());
             List<Article> articles = new ArrayList<>(crawledArticles.stream().map(crawledArticle -> Article.builder()
                     .url(crawledArticle.getUrl())
+                    .title(crawledArticle.getTitle())
+                    .location(crawledArticle.getLocation())
                     .description(crawledArticle.getDescription())
                     .content(crawledArticle.getContent())
                     .publicationDate(crawledArticle.getPublicationDate())
@@ -119,6 +121,6 @@ public class AlgorithmServiceImp implements AlgorithmService {
             articleAlgorithmLabelService.addMany(articleAlgorithmLabels);
             totalAlgorithmLabelService.increase(existedTotalLabels, totalByLabel);
         }
-        return Optional.empty();
+        return Optional.of(Boolean.TRUE);
     }
 }
