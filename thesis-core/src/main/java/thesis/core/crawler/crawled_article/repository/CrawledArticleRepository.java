@@ -1,4 +1,7 @@
 package thesis.core.crawler.crawled_article.repository;
 
-public interface CrawledArticleRepository {
+import thesis.core.crawler.crawled_article.CrawledArticle;
+import thesis.utils.mongo.repo.MongoDBRepository;
+
+public interface CrawledArticleRepository extends MongoDBRepository<CrawledArticle> {
 }

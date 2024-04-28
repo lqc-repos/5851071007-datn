@@ -1,4 +1,7 @@
 package thesis.core.app.topic.repository;
 
-public interface TopicRepository {
+import thesis.core.app.topic.Topic;
+import thesis.utils.mongo.repo.MongoDBRepository;
+
+public interface TopicRepository extends MongoDBRepository<Topic> {
 }

@@ -1,4 +1,7 @@
 package thesis.core.crawler.error_article.repository;
 
-public interface ErrorArticleRepository {
+import thesis.core.crawler.error_article.ErrorArticle;
+import thesis.utils.mongo.repo.MongoDBRepository;
+
+public interface ErrorArticleRepository extends MongoDBRepository<ErrorArticle> {
 }

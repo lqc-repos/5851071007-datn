@@ -1,4 +1,7 @@
 package thesis.core.app.author.repository;
 
-public interface AuthorRepository {
+import thesis.core.app.author.Author;
+import thesis.utils.mongo.repo.MongoDBRepository;
+
+public interface AuthorRepository extends MongoDBRepository<Author> {
 }

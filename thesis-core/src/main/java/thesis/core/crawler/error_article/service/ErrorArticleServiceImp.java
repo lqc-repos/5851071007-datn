@@ -4,7 +4,7 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.crawler.error_article.ErrorArticle;
-import thesis.core.crawler.error_article.repository.ErrorArticleRepositoryImp;
+import thesis.core.crawler.error_article.repository.ErrorArticleRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.Optional;
 @Service
 public class ErrorArticleServiceImp implements ErrorArticleService {
     @Autowired
-    private ErrorArticleRepositoryImp errorArticleRepository;
+    private ErrorArticleRepository errorArticleRepository;
 
     @Override
     public List<ErrorArticle> getByUrls(List<String> urls) {

@@ -4,7 +4,7 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.crawler.crawled_article.CrawledArticle;
-import thesis.core.crawler.crawled_article.repository.CrawledArticleRepositoryImp;
+import thesis.core.crawler.crawled_article.repository.CrawledArticleRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.Optional;
 @Service
 public class CrawledArticleServiceImp implements CrawledArticleService {
     @Autowired
-    private CrawledArticleRepositoryImp articleRepository;
+    private CrawledArticleRepository articleRepository;
 
     @Override
     public List<CrawledArticle> getByUrls(List<String> urls) {
