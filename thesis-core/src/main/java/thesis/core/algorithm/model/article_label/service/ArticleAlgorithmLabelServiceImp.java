@@ -7,6 +7,7 @@ import thesis.core.algorithm.model.article_label.ArticleAlgorithmLabel;
 import thesis.core.algorithm.model.article_label.repository.ArticleAlgorithmLabelRepository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,8 +29,13 @@ public class ArticleAlgorithmLabelServiceImp implements ArticleAlgorithmLabelSer
     }
 
     @Override
+    public Optional<Boolean> addMany(List<ArticleAlgorithmLabel> articleAlgorithmLabels) {
+        return articleAlgorithmLabelRepository.insertMany(articleAlgorithmLabels);
+    }
+
+    @Override
     public Optional<Boolean> addIfNotExist(ArticleAlgorithmLabel articleAlgorithmLabel) {
-        if (getOne(articleAlgorithmLabel.getLabel()).isPresent())
+        if (getOne(articleAlgorithmLabel.getArticleId()).isPresent())
             return Optional.of(Boolean.FALSE);
         return articleAlgorithmLabelRepository.insert(articleAlgorithmLabel);
     }

@@ -1,5 +1,11 @@
 package thesis.core.algorithm.service;
 
-public interface AlgorithmService {
+import java.util.Optional;
 
+public interface AlgorithmService {
+    Optional<Boolean> migrateArticle();
+
+    Optional<Boolean> makeTermFrequency() throws Exception;
+
+    Optional<Boolean> makeInverseDocumentFrequency();
 }

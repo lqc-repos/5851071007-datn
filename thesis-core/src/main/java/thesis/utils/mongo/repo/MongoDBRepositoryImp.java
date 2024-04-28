@@ -64,4 +64,13 @@ public abstract class MongoDBRepositoryImp<Clazz extends CommonDTO> implements M
         Boolean results = getMongoDBOperation().update(queryDoc, updateDoc);
         return Optional.ofNullable(results);
     }
+
+    @Override
+    public Optional<Boolean> increase(Map<String, Object> query, Map<String, Object> data) {
+        Document queryDoc = new Document(query);
+        Document updateDoc = new Document(data);
+        updateDoc.put("$set", new Document("updatedDate", System.currentTimeMillis() / 1000));
+        Boolean results = getMongoDBOperation().update(queryDoc, updateDoc);
+        return Optional.ofNullable(results);
+    }
 }

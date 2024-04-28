@@ -1,9 +1,11 @@
 package thesis.utils.mongo.operator;
 
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import org.apache.commons.collections4.MapUtils;
 import org.bson.BsonValue;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import thesis.utils.mongo.provider.MongoDBProvider;
 
 import java.util.ArrayList;
@@ -56,5 +58,10 @@ public class MongoDBOperatorImp<Clazz> implements MongoDBOperator<Clazz> {
     @Override
     public Boolean update(Document query, Document data) {
         return this.mongoCollection.updateMany(query, data).getMatchedCount() > 0;
+    }
+
+    @Override
+    public AggregateIterable<Document> aggregateSpecial(List<Bson> pipeline) {
+        return this.mongoCollection.aggregate(pipeline, Document.class).allowDiskUse(true);
     }
 }

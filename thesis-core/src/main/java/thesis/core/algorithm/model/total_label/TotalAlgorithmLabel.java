@@ -16,5 +16,5 @@ public class TotalAlgorithmLabel extends CommonDTO {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
     private String label;
-    private Integer count;
+    private Long count;
 }

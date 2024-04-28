@@ -23,4 +23,6 @@ public interface MongoDBRepository<Clazz> {
     Optional<Boolean> insertMany(List<Clazz> objects);
 
     Optional<Boolean> update(Map<String, Object> query, Map<String, Object> data);
+
+    Optional<Boolean> increase(Map<String, Object> query, Map<String, Object> data);
 }
