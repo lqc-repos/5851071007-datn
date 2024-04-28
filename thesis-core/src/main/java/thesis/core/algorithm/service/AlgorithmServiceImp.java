@@ -67,11 +67,11 @@ public class AlgorithmServiceImp implements AlgorithmService {
     public Optional<Boolean> storageFrequency() throws Exception {
         Set<String> existedTotalLabels = totalAlgorithmLabelService.getExistedLabel();
         Long totalArticle = articleService.count(CommandQueryArticle.builder().build()).orElseThrow();
-        log.info("=== total page: {}", totalArticle);
-        int sizePerPage = 50, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
+        int sizePerPage = 100, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
+        log.info("=== total page: {}", totalPage);
         Set<String> urls = new HashSet<>();
         for (int i = 0; i < totalPage; i++) {
-            log.info("-=== current page: {}", i + 1);
+            log.info("=== current page: {}", i + 1);
             List<ArticleAlgorithmLabel> articleAlgorithmLabels = new ArrayList<>();
             Map<String, Long> totalByLabel = new HashMap<>();
             List<Article> articles = articleService.getMany(CommandQueryArticle.builder()
