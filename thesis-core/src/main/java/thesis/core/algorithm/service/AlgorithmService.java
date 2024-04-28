@@ -5,5 +5,5 @@ import java.util.Optional;
 public interface AlgorithmService {
     Optional<Boolean> migrateArticle();
 
-    Optional<Boolean> saveFrequency() throws Exception;
+    Optional<Boolean> storageFrequency() throws Exception;
 }

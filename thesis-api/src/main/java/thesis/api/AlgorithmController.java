@@ -31,12 +31,12 @@ public class AlgorithmController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/process_tf")
-    public ResponseEntity<ResponseDTO<?>> processTf() {
+    @RequestMapping(method = RequestMethod.GET, value = "/storage_frequency")
+    public ResponseEntity<ResponseDTO<?>> storageFrequency() {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(algorithmService.saveFrequency())
+                    .data(algorithmService.storageFrequency())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();

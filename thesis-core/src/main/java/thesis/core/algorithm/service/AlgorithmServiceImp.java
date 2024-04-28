@@ -62,7 +62,7 @@ public class AlgorithmServiceImp implements AlgorithmService {
     }
 
     @Override
-    public Optional<Boolean> saveFrequency() throws Exception {
+    public Optional<Boolean> storageFrequency() throws Exception {
         Set<String> existedTotalLabels = totalAlgorithmLabelService.getExistedLabel();
         Long totalArticle = articleService.count(CommandQueryArticle.builder().build()).orElseThrow();
         int sizePerPage = 50, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
