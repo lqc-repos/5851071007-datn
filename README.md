@@ -37,6 +37,6 @@ Ngành: Công nghệ thông tin
 - Tìm hiểu về NLP:
 - Sử dụng model POS Tagger - VnCoreNLP để gán nhãn từ loại
 
-**Tuần 5 (22/04 - 28/04)**
+**Tuần 5 (29/04 - 05/05)**
 - Tìm hiểu về NLP:
 - Xử lý dữ liệu trên tệp 32,000 bài báo
