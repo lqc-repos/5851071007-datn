@@ -2,10 +2,12 @@ package thesis.core.algorithm.model.total_label.service;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.algorithm.model.total_label.TotalAlgorithmLabel;
+import thesis.core.algorithm.model.total_label.command.CommandQueryTotalLabel;
 import thesis.core.algorithm.model.total_label.repository.TotalAlgorithmLabelRepository;
 
 import java.util.*;
@@ -23,6 +25,20 @@ public class TotalAlgorithmLabelServiceImp implements TotalAlgorithmLabelService
         projection.put("label", 1);
         List<TotalAlgorithmLabel> totalAlgorithmLabels = totalAlgorithmLabelRepository.findAll(new Document(), new Document(), projection);
         return new HashSet<>(totalAlgorithmLabels.stream().map(TotalAlgorithmLabel::getLabel).toList());
+    }
+
+    @Override
+    public List<TotalAlgorithmLabel> get(CommandQueryTotalLabel command) {
+        Map<String, Object> query = new HashMap<>();
+        if (StringUtils.isNotBlank(command.getLabel()))
+            query.put("label", command.getLabel());
+        Map<String, Object> projection = new HashMap<>();
+        if (BooleanUtils.isTrue(command.getHasProjection())) {
+            projection.put("_id", BooleanUtils.isTrue(command.getTotalLabelProjection().getIsId()) ? 1 : 0);
+            projection.put("label", BooleanUtils.isTrue(command.getTotalLabelProjection().getIsLabel()) ? 1 : 0);
+            projection.put("count", BooleanUtils.isTrue(command.getTotalLabelProjection().getIsCount()) ? 1 : 0);
+        }
+        return totalAlgorithmLabelRepository.findAll(query, new Document(), projection);
     }
 
     @Override

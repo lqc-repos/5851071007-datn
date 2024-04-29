@@ -47,4 +47,20 @@ public class AlgorithmController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/calculate_tfidf")
+    public ResponseEntity<ResponseDTO<?>> calculateTfIdf() {
+        try {
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(algorithmService.calculateTfIdf())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
 }

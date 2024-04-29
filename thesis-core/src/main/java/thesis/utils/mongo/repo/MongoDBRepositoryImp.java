@@ -61,7 +61,7 @@ public abstract class MongoDBRepositoryImp<Clazz extends CommonDTO> implements M
         Document queryDoc = new Document(query);
         Document updateDoc = new Document(data);
         updateDoc.put("updatedDate", System.currentTimeMillis() / 1000);
-        Boolean results = getMongoDBOperation().update(queryDoc, updateDoc);
+        Boolean results = getMongoDBOperation().update(queryDoc, new Document("$set", updateDoc));
         return Optional.ofNullable(results);
     }
 

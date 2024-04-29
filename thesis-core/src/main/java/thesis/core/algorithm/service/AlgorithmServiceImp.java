@@ -5,7 +5,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.algorithm.model.article_label.ArticleAlgorithmLabel;
+import thesis.core.algorithm.model.article_label.command.CommandQueryArticleLabel;
 import thesis.core.algorithm.model.article_label.service.ArticleAlgorithmLabelService;
+import thesis.core.algorithm.model.total_label.TotalAlgorithmLabel;
+import thesis.core.algorithm.model.total_label.command.CommandQueryTotalLabel;
 import thesis.core.algorithm.model.total_label.service.TotalAlgorithmLabelService;
 import thesis.core.app.article.Article;
 import thesis.core.app.article.command.CommandQueryArticle;
@@ -16,6 +19,8 @@ import thesis.core.crawler.crawled_article.service.CrawledArticleService;
 import thesis.core.nlp.dto.AnnotatedWord;
 import thesis.core.nlp.service.NLPService;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,7 +69,7 @@ public class AlgorithmServiceImp implements AlgorithmService {
     }
 
     @Override
-    public Optional<Boolean> storageFrequency() throws Exception {
+    public Optional<Boolean> storageFrequency() {
         Set<String> existedTotalLabels = totalAlgorithmLabelService.getExistedLabel();
         Long totalArticle = articleService.count(CommandQueryArticle.builder().build()).orElseThrow();
         int sizePerPage = 100, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
@@ -127,6 +132,56 @@ public class AlgorithmServiceImp implements AlgorithmService {
             articleAlgorithmLabelService.addMany(articleAlgorithmLabels);
             totalAlgorithmLabelService.increase(existedTotalLabels, totalByLabel);
             log.info("=== end page: {} - articleAlgorithmLabels: {} - totalByLabel: {}", i + 1, articleAlgorithmLabels.size(), totalByLabel.size());
+        }
+        return Optional.of(Boolean.TRUE);
+    }
+
+    @Override
+    public Optional<Boolean> calculateTfIdf() throws Exception {
+        List<TotalAlgorithmLabel> totalAlgorithmLabels = totalAlgorithmLabelService.get(CommandQueryTotalLabel.builder()
+                .hasProjection(true)
+                .totalLabelProjection(CommandQueryTotalLabel.TotalLabelProjection.builder()
+                        .isId(false)
+                        .isLabel(true)
+                        .isCount(true)
+                        .build())
+                .build());
+        if (CollectionUtils.isEmpty(totalAlgorithmLabels))
+            throw new Exception("Existed labels is empty");
+        Map<String, Long> labelWithCountMap = totalAlgorithmLabels.stream()
+                .collect(Collectors.toMap(TotalAlgorithmLabel::getLabel, TotalAlgorithmLabel::getCount));
+        Long totalArticleLabels = articleAlgorithmLabelService.count().orElseThrow();
+        int sizePerPage = 100, totalPage = (int) ((totalArticleLabels + sizePerPage - 1) / sizePerPage);
+        log.info("=== total page: {}", totalPage);
+        for (int i = 0; i < totalPage; i++) {
+            log.info("=== current page: {}", i + 1);
+            List<ArticleAlgorithmLabel> articleAlgorithmLabels = articleAlgorithmLabelService
+                    .getMany(CommandQueryArticleLabel.builder()
+                            .isDescCreatedDate(true)
+                            .page(i + 1)
+                            .size(sizePerPage)
+                            .build());
+            for (ArticleAlgorithmLabel articleAlgorithmLabel : articleAlgorithmLabels) {
+                try {
+                    if (articleAlgorithmLabel.getTotalLabel() <= 0 || CollectionUtils.isEmpty(articleAlgorithmLabel.getLabels())) {
+                        log.warn("Total label equals zero or label list is empty - articleId: {}", articleAlgorithmLabel.getArticleId());
+                        continue;
+                    }
+                    for (ArticleAlgorithmLabel.LabelPerArticle labelPerArticle : articleAlgorithmLabel.getLabels()) {
+                        double tf = BigDecimal.valueOf(labelPerArticle.getCount())
+                                .divide(BigDecimal.valueOf(articleAlgorithmLabel.getTotalLabel()), 20, RoundingMode.CEILING).doubleValue();
+                        double idf = Math.log(BigDecimal.valueOf(totalArticleLabels)
+                                .divide(BigDecimal.valueOf(labelWithCountMap.get(labelPerArticle.getLabel())), 5, RoundingMode.CEILING).doubleValue());
+                        labelPerArticle.setTf(tf);
+                        labelPerArticle.setIdf(idf);
+                    }
+                    articleAlgorithmLabelService.updateOne(articleAlgorithmLabel).orElseThrow(() -> new Exception("Can not update article label"));
+                } catch (Exception ex) {
+                    log.warn("Calculate TF-IDF error with ArticleAlgorithmLable id: {}", articleAlgorithmLabel.getId().toString());
+                }
+
+            }
+            log.info("=== end page: {}", i + 1);
         }
         return Optional.of(Boolean.TRUE);
     }

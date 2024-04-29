@@ -28,5 +28,7 @@ public class ArticleAlgorithmLabel extends CommonDTO {
     public static class LabelPerArticle {
         private String label;
         private Long count;
+        private Double tf;
+        private Double idf;
     }
 }
