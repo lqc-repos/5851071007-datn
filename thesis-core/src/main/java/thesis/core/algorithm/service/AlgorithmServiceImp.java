@@ -2,6 +2,7 @@ package thesis.core.algorithm.service;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.algorithm.model.article_label.ArticleAlgorithmLabel;
@@ -183,6 +184,35 @@ public class AlgorithmServiceImp implements AlgorithmService {
             }
             log.info("=== end page: {}", i + 1);
         }
+        return Optional.of(Boolean.TRUE);
+    }
+
+    @Override
+    public Optional<Boolean> simulateAvgTfIdf() throws Exception {
+        List<ArticleAlgorithmLabel> articleAlgorithmLabels = articleAlgorithmLabelService.getMany(CommandQueryArticleLabel.builder()
+                .isDescCreatedDate(true)
+                .page(1)
+                .size(99999)
+                .build());
+        if (CollectionUtils.isEmpty(articleAlgorithmLabels))
+            throw new Exception("Article label is empty");
+        double eligibleRate = 0.05D;
+        Map<String, Map<String, Double>> avgTfIdfByArticleLabel = new HashMap<>();
+        for (ArticleAlgorithmLabel articleAlgorithmLabel : articleAlgorithmLabels) {
+            if (articleAlgorithmLabel.getLabels().get(0).getTf() == null)
+                continue;
+            Map<String, Double> eligibleArticleLabel = new HashMap<>();
+            for (ArticleAlgorithmLabel.LabelPerArticle labelPerArticle : articleAlgorithmLabel.getLabels()) {
+                double rate = BigDecimal.valueOf(labelPerArticle.getTf())
+                        .multiply(BigDecimal.valueOf(labelPerArticle.getIdf()))
+                        .setScale(20, RoundingMode.CEILING).doubleValue();
+                if (rate > eligibleRate)
+                    eligibleArticleLabel.put(labelPerArticle.getLabel(), rate);
+            }
+            if (MapUtils.isNotEmpty(eligibleArticleLabel))
+                avgTfIdfByArticleLabel.put(articleAlgorithmLabel.getId().toString(), eligibleArticleLabel);
+        }
+        int brake = 0;
         return Optional.of(Boolean.TRUE);
     }
 }

@@ -8,4 +8,6 @@ public interface AlgorithmService {
     Optional<Boolean> storageFrequency();
 
     Optional<Boolean> calculateTfIdf() throws Exception;
+
+    Optional<Boolean> simulateAvgTfIdf() throws Exception;
 }

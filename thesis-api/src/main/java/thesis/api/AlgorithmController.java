@@ -63,4 +63,20 @@ public class AlgorithmController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/simulate_rate")
+    public ResponseEntity<ResponseDTO<?>> simulateRate() {
+        try {
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(algorithmService.simulateAvgTfIdf())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
 }
