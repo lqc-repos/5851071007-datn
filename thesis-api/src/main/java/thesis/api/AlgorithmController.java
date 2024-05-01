@@ -6,21 +6,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import thesis.core.algorithm.service.AlgorithmService;
+import thesis.core.label_handler.service.LabelHandlerService;
 import thesis.utils.dto.ResponseDTO;
 
 @RestController
 @RequestMapping("/algorithm")
 public class AlgorithmController {
     @Autowired
-    private AlgorithmService algorithmService;
+    private LabelHandlerService labelHandlerService;
 
     @RequestMapping(method = RequestMethod.GET, value = "/migrate_article")
     public ResponseEntity<ResponseDTO<?>> annotate() {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(algorithmService.migrateArticle())
+                    .data(labelHandlerService.migrateArticle())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -36,7 +36,7 @@ public class AlgorithmController {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(algorithmService.storageFrequency())
+                    .data(labelHandlerService.storageFrequency())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -52,7 +52,7 @@ public class AlgorithmController {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(algorithmService.calculateTfIdf())
+                    .data(labelHandlerService.calculateTfIdf())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -68,7 +68,7 @@ public class AlgorithmController {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(algorithmService.simulateAvgTfIdf())
+                    .data(labelHandlerService.simulateAvgTfIdf())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
