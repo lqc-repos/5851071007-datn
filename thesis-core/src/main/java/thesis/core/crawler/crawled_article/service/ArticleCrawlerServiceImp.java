@@ -11,10 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.core.crawler.crawled_article.command.CommandCrawlArticle;
-import thesis.core.crawler.crawled_article_log.CrawledArticleLog;
-import thesis.core.crawler.crawled_article_log.service.CrawledArticleLogService;
 import thesis.core.crawler.crawled_article_error.CrawledArticleError;
 import thesis.core.crawler.crawled_article_error.service.CrawledArticleErrorService;
+import thesis.core.crawler.crawled_article_log.CrawledArticleLog;
+import thesis.core.crawler.crawled_article_log.service.CrawledArticleLogService;
 import thesis.utils.constant.VNExpressConst;
 
 import java.time.LocalDateTime;

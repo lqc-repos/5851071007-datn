@@ -1,4 +1,4 @@
-package thesis.core.article.model.label;
+package thesis.core.article.model.location;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -14,9 +14,9 @@ import java.util.List;
 @Builder
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class Label extends CommonDTO {
+public class Location extends CommonDTO {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
-    private String label;
+    private String topic;
     private List<String> articleIds;
 }
