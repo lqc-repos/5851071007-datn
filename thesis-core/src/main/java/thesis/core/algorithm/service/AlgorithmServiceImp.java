@@ -19,6 +19,7 @@ import thesis.core.crawler.crawled_article.command.CommandQueryCrawledArticle;
 import thesis.core.crawler.crawled_article.service.CrawledArticleService;
 import thesis.core.nlp.dto.AnnotatedWord;
 import thesis.core.nlp.service.NLPService;
+import thesis.utils.file.CSVExporter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -212,7 +213,7 @@ public class AlgorithmServiceImp implements AlgorithmService {
             if (MapUtils.isNotEmpty(eligibleArticleLabel))
                 avgTfIdfByArticleLabel.put(articleAlgorithmLabel.getId().toString(), eligibleArticleLabel);
         }
-        int brake = 0;
+        CSVExporter.exportTfIdfRate(avgTfIdfByArticleLabel);
         return Optional.of(Boolean.TRUE);
     }
 }
