@@ -1,4 +1,4 @@
-package thesis.core.crawler.error_article;
+package thesis.core.crawler.crawled_article_error;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -12,7 +12,7 @@ import thesis.utils.dto.CommonDTO;
 @Builder
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class ErrorArticle extends CommonDTO {
+public class CrawledArticleError extends CommonDTO {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
     private String url;

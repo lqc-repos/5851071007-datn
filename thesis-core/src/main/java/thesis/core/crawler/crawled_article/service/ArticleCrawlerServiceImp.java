@@ -13,8 +13,8 @@ import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.core.crawler.crawled_article.command.CommandCrawlArticle;
 import thesis.core.crawler.crawled_article_log.CrawledArticleLog;
 import thesis.core.crawler.crawled_article_log.service.CrawledArticleLogService;
-import thesis.core.crawler.error_article.ErrorArticle;
-import thesis.core.crawler.error_article.service.ErrorArticleService;
+import thesis.core.crawler.crawled_article_error.CrawledArticleError;
+import thesis.core.crawler.crawled_article_error.service.CrawledArticleErrorService;
 import thesis.utils.constant.VNExpressConst;
 
 import java.time.LocalDateTime;
@@ -37,7 +37,7 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
     @Autowired
     private CrawledArticleService crawledArticleService;
     @Autowired
-    private ErrorArticleService errorArticleService;
+    private CrawledArticleErrorService crawledArticleErrorService;
     @Autowired
     private CrawledArticleLogService crawledArticleLogService;
 
@@ -164,7 +164,7 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
                     .build();
         } catch (Exception ex) {
             log.warn("Cannot get article url: {}, reason: {}", url, ex.getMessage());
-            errorArticleService.addIfNotExist(ErrorArticle.builder()
+            crawledArticleErrorService.addIfNotExist(CrawledArticleError.builder()
                     .url(url)
                     .reason(ex.getMessage())
                     .build());
@@ -224,9 +224,9 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
             List<String> existedUrls = crawledArticles.stream().map(CrawledArticle::getUrl).toList();
             originUrls.removeIf(existedUrls::contains);
         }
-        List<ErrorArticle> errorArticles = errorArticleService.getByUrls(originUrls);
-        if (CollectionUtils.isNotEmpty(errorArticles)) {
-            List<String> existedUrls = errorArticles.stream().map(ErrorArticle::getUrl).toList();
+        List<CrawledArticleError> crawledArticleErrors = crawledArticleErrorService.getByUrls(originUrls);
+        if (CollectionUtils.isNotEmpty(crawledArticleErrors)) {
+            List<String> existedUrls = crawledArticleErrors.stream().map(CrawledArticleError::getUrl).toList();
             originUrls.removeIf(existedUrls::contains);
         }
     }
