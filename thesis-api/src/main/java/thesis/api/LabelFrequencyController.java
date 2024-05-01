@@ -11,7 +11,7 @@ import thesis.utils.dto.ResponseDTO;
 
 @RestController
 @RequestMapping("/algorithm")
-public class AlgorithmController {
+public class LabelFrequencyController {
     @Autowired
     private LabelHandlerService labelHandlerService;
 
