@@ -6,7 +6,7 @@ import lombok.*;
 import org.bson.types.ObjectId;
 import thesis.utils.dto.CommonDTO;
 
-import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,5 +18,5 @@ public class Location extends CommonDTO {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
     private String topic;
-    private List<String> articleIds;
+    private Set<String> articleIds;
 }
