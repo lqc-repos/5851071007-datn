@@ -12,7 +12,7 @@ public class ThesisConfigurationRepositoryImp extends MongoDBRepositoryImp<Thesi
 
     public ThesisConfigurationRepositoryImp(@Value("${thesis.mongo.url}") String databaseUrl,
                                             @Value("${thesis.mongo.database-name}") String databaseName) {
-        this.mongoDBOperator = new MongoDBOperatorImp<>(databaseUrl, databaseName, "author", ThesisConfiguration.class);
+        this.mongoDBOperator = new MongoDBOperatorImp<>(databaseUrl, databaseName, "thesis_configuration", ThesisConfiguration.class);
     }
 
     @Override

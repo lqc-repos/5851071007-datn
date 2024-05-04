@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import thesis.core.article.Article;
 import thesis.core.article.command.CommandQueryArticle;
 import thesis.core.article.service.ArticleService;
+import thesis.core.configuration.service.ThesisConfigurationService;
 import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.core.crawler.crawled_article.command.CommandQueryCrawledArticle;
 import thesis.core.crawler.crawled_article.service.CrawledArticleService;
@@ -20,6 +21,7 @@ import thesis.core.label_handler.model.total_label_frequency.command.CommandQuer
 import thesis.core.label_handler.model.total_label_frequency.service.TotalLabelFrequencyService;
 import thesis.core.nlp.dto.AnnotatedWord;
 import thesis.core.nlp.service.NLPService;
+import thesis.utils.constant.ConfigurationName;
 import thesis.utils.file.CSVExporter;
 
 import java.math.BigDecimal;
@@ -40,6 +42,8 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
     private ArticleService articleService;
     @Autowired
     private NLPService nlpService;
+    @Autowired
+    private ThesisConfigurationService thesisConfigurationService;
 
     @Override
     public Optional<Boolean> migrateArticle() {
@@ -158,7 +162,7 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             throw new Exception("Existed labels is empty");
         Map<String, Long> labelWithCountMap = totalLabelFrequencies.stream()
                 .collect(Collectors.toMap(TotalLabelFrequency::getLabel, TotalLabelFrequency::getCount));
-        Long totalArticleLabels = articleLabelFrequencyService.count().orElseThrow();
+        long totalArticleLabels = articleLabelFrequencyService.count().orElseThrow();
         int sizePerPage = 100, totalPage = (int) ((totalArticleLabels + sizePerPage - 1) / sizePerPage);
         log.info("=== total page: {}", totalPage);
         for (int i = 0; i < totalPage; i++) {
@@ -203,7 +207,9 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
                 .build());
         if (CollectionUtils.isEmpty(articleLabelFrequencies))
             throw new Exception("Article label is empty");
-        double eligibleRate = 0.05D;
+        double eligibleRate = thesisConfigurationService.getByName(ConfigurationName.ELIGIBLE_RATE.getName())
+                .map(thesisConfiguration -> Double.valueOf(thesisConfiguration.getValue()))
+                .orElse(0.05D);
         Map<String, Map<String, Double>> avgTfIdfByArticleLabel = new HashMap<>();
         for (ArticleLabelFrequency articleLabelFrequency : articleLabelFrequencies) {
             if (articleLabelFrequency.getLabels().get(0).getTf() == null)

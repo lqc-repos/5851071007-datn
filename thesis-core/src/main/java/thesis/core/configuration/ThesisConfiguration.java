@@ -18,7 +18,5 @@ public class ThesisConfiguration extends CommonDTO {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
     private String name;
-    private String stringValue;
-    private Number numberValue;
-    private Collection<?> collectionValue;
+    private String value;
 }
