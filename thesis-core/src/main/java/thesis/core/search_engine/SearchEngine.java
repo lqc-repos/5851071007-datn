@@ -29,24 +29,24 @@ import java.util.stream.Collectors;
 @Getter
 @Log4j2
 public class SearchEngine {
-    private Map<String, Author> authorMap;
-    private Map<String, Topic> topicMap;
-    private Map<String, Location> locationMap;
-    private Map<String, CustomLabel> customLabelMap;
-    private Map<String, NLPLabel> nlpLabelMap;
-    private Map<String, PERLabel> perLabelMap;
-    private Map<String, ORGLabel> orgLabelMap;
-    private Map<String, LOCLabel> locLabelMap;
+    private final Map<String, Author> authorMap;
+    private final Map<String, Topic> topicMap;
+    private final Map<String, Location> locationMap;
+    private final Map<String, CustomLabel> customLabelMap;
+    private final Map<String, NLPLabel> nlpLabelMap;
+    private final Map<String, PERLabel> perLabelMap;
+    private final Map<String, ORGLabel> orgLabelMap;
+    private final Map<String, LOCLabel> locLabelMap;
 
     @Autowired
-    void SearchEngine(AuthorService authorService,
-                      TopicService topicService,
-                      LocationService locationService,
-                      CustomLabelService customLabelService,
-                      NLPLabelService nlpLabelService,
-                      ORGLabelService orgLabelService,
-                      PERLabelService perLabelService,
-                      LOCLabelService locLabelService) {
+    SearchEngine(AuthorService authorService,
+                 TopicService topicService,
+                 LocationService locationService,
+                 CustomLabelService customLabelService,
+                 NLPLabelService nlpLabelService,
+                 ORGLabelService orgLabelService,
+                 PERLabelService perLabelService,
+                 LOCLabelService locLabelService) {
         log.info("=== start init label maps");
         authorMap = authorService.getMany(CommandCommonQuery.builder()
                 .page(1)
