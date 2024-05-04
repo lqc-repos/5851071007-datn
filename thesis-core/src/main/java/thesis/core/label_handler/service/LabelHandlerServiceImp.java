@@ -139,7 +139,7 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             }
             articleLabelFrequencyService.addMany(articleLabelFrequencies);
             totalLabelFrequencyService.increase(existedTotalLabels, totalArticleLabels);
-            log.info("=== end page: {} - articleAlgorithmLabels: {} - totalByLabel: {}", i + 1, articleLabelFrequencies.size(), totalArticleLabels.size());
+            log.info("=== end page: {} - articleLabels: {} - totalByLabel: {}", i + 1, articleLabelFrequencies.size(), totalArticleLabels.size());
         }
         return Optional.of(Boolean.TRUE);
     }
