@@ -28,7 +28,7 @@ public class TotalLabelFrequencyServiceImp implements TotalLabelFrequencyService
     }
 
     @Override
-    public List<TotalLabelFrequency> get(CommandQueryTotalLabelFrequency command) {
+    public List<TotalLabelFrequency> getMany(CommandQueryTotalLabelFrequency command) {
         Map<String, Object> query = new HashMap<>();
         if (StringUtils.isNotBlank(command.getLabel()))
             query.put("label", command.getLabel());

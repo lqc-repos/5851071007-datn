@@ -11,7 +11,7 @@ import java.util.Set;
 public interface TotalLabelFrequencyService {
     Set<String> getExistedLabel();
 
-    List<TotalLabelFrequency> get(CommandQueryTotalLabelFrequency command);
+    List<TotalLabelFrequency> getMany(CommandQueryTotalLabelFrequency command);
 
     Optional<TotalLabelFrequency> getOne(String label);
 

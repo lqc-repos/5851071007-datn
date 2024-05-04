@@ -63,12 +63,12 @@ public class LabelFrequencyController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/calculate_tfidf")
+    @RequestMapping(method = RequestMethod.GET, value = "/calculate_tf")
     public ResponseEntity<ResponseDTO<?>> calculateTfIdf() {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(labelHandlerService.calculateTfIdf())
+                    .data(labelHandlerService.calculateTf())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -79,12 +79,12 @@ public class LabelFrequencyController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/simulate_rate")
-    public ResponseEntity<ResponseDTO<?>> simulateRate() {
+    @RequestMapping(method = RequestMethod.GET, value = "/handle_nlp_label")
+    public ResponseEntity<ResponseDTO<?>> handleNLPLabel() {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(labelHandlerService.simulateAvgTfIdf())
+                    .data(labelHandlerService.handleNLPLabel())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -94,5 +94,4 @@ public class LabelFrequencyController {
                     .build(), HttpStatus.OK);
         }
     }
-
 }

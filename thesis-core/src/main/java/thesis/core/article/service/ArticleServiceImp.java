@@ -25,6 +25,8 @@ public class ArticleServiceImp implements ArticleService {
     @Override
     public List<Article> getMany(CommandCommonQuery command) {
         Map<String, Object> sort = new HashMap<>();
+        if (command.getIsDescId() != null)
+            sort.put("_id", command.getIsDescId() ? -1 : 1);
         if (command.getIsDescCreatedDate() != null)
             sort.put("createdDate", command.getIsDescCreatedDate() ? -1 : 1);
         if (command.getIsDescPublicationDate() != null)

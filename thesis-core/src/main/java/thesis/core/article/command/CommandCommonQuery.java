@@ -8,6 +8,7 @@ import lombok.*;
 @Builder
 @ToString
 public class CommandCommonQuery {
+    private Boolean isDescId;
     private Boolean isDescCreatedDate;
     private Boolean isDescPublicationDate;
     private Integer page;

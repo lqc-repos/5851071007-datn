@@ -30,6 +30,5 @@ public class ArticleLabelFrequency extends CommonDTO {
         private Long count;
         private String ner;
         private Double tf;
-        private Double idf;
     }
 }

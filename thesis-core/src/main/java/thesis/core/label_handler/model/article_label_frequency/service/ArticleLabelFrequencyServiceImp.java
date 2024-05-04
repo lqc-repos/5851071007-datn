@@ -32,6 +32,8 @@ public class ArticleLabelFrequencyServiceImp implements ArticleLabelFrequencySer
     @Override
     public List<ArticleLabelFrequency> getMany(CommandQueryArticleLabelFrequency command) {
         Map<String, Object> sort = new HashMap<>();
+        if (command.getIsDescId() != null)
+            sort.put("_id", command.getIsDescId() ? -1 : 1);
         if (command.getIsDescCreatedDate() != null)
             sort.put("createdDate", command.getIsDescCreatedDate() ? -1 : 1);
         return articleLabelFrequencyRepository.find(new Document(), sort, (command.getPage() - 1) * command.getSize(), command.getSize());

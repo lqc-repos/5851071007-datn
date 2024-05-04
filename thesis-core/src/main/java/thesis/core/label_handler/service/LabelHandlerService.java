@@ -9,7 +9,7 @@ public interface LabelHandlerService {
 
     Optional<Boolean> divideArticleComponent();
 
-    Optional<Boolean> calculateTfIdf() throws Exception;
+    Optional<Boolean> calculateTf() throws Exception;
 
-    Optional<Boolean> simulateAvgTfIdf() throws Exception;
+    Optional<Boolean> handleNLPLabel() throws Exception;
 }

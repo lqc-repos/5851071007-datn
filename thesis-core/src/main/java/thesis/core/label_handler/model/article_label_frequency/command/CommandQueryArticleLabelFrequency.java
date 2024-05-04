@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class CommandQueryArticleLabelFrequency {
+    private Boolean isDescId;
     private Boolean isDescCreatedDate;
     private Integer page;
     private Integer size;

@@ -2,7 +2,6 @@ package thesis.core.label_handler.service;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +20,7 @@ import thesis.core.configuration.service.ThesisConfigurationService;
 import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.core.crawler.crawled_article.command.CommandQueryCrawledArticle;
 import thesis.core.crawler.crawled_article.service.CrawledArticleService;
+import thesis.core.label_handler.dto.ArticleIdfInfo;
 import thesis.core.label_handler.dto.ArticleWorldInfo;
 import thesis.core.label_handler.model.article_label_frequency.ArticleLabelFrequency;
 import thesis.core.label_handler.model.article_label_frequency.command.CommandQueryArticleLabelFrequency;
@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
 @Service
 @Log4j2
 public class LabelHandlerServiceImp implements LabelHandlerService {
+    private static final List<String> NER_TYPES = Arrays.asList("B-PER", "B-ORG", "B-LOC", "I-PER", "I-ORG", "I-LOC");
+
     @Autowired
     private CrawledArticleService crawledArticleService;
     @Autowired
@@ -110,8 +112,7 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             List<ArticleLabelFrequency> articleLabelFrequencies = new ArrayList<>();
             Map<String, Long> totalArticleLabels = new HashMap<>();
             List<Article> articles = articleService.getMany(CommandCommonQuery.builder()
-                    .isDescPublicationDate(true)
-                    .isDescCreatedDate(true)
+                    .isDescId(true)
                     .page(i + 1)
                     .size(sizePerPage)
                     .build());
@@ -220,8 +221,7 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
         for (int i = 0; i < totalPage; i++) {
             log.info("=== current page: {}", i + 1);
             List<Article> articles = articleService.getMany(CommandCommonQuery.builder()
-                    .isDescPublicationDate(true)
-                    .isDescCreatedDate(true)
+                    .isDescId(true)
                     .page(i + 1)
                     .size(sizePerPage)
                     .build());
@@ -302,9 +302,49 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
         return Optional.of(Boolean.TRUE);
     }
 
+    /**
+     * Calculate TF rate = number of label / sum of labels
+     */
     @Override
-    public Optional<Boolean> calculateTfIdf() throws Exception {
-        List<TotalLabelFrequency> totalLabelFrequencies = totalLabelFrequencyService.get(CommandQueryTotalLabelFrequency.builder()
+    public Optional<Boolean> calculateTf() throws Exception {
+        long totalArticleLabels = articleLabelFrequencyService.count().orElseThrow();
+        int sizePerPage = 100, totalPage = (int) ((totalArticleLabels + sizePerPage - 1) / sizePerPage);
+        log.info("=== total page: {}", totalPage);
+        for (int i = 0; i < totalPage; i++) {
+            List<ArticleLabelFrequency> articleLabelFrequencies = articleLabelFrequencyService
+                    .getMany(CommandQueryArticleLabelFrequency.builder()
+                            .isDescId(true)
+                            .page(i + 1)
+                            .size(sizePerPage)
+                            .build());
+            log.info("=== current page: {}, size: {}", i + 1, articleLabelFrequencies.size());
+            for (ArticleLabelFrequency articleLabelFrequency : articleLabelFrequencies) {
+                try {
+                    if (articleLabelFrequency.getTotalLabel() <= 0 || CollectionUtils.isEmpty(articleLabelFrequency.getLabels())) {
+                        log.warn("Total label equals zero or label list is empty - articleId: {}", articleLabelFrequency.getArticleId());
+                        continue;
+                    }
+                    for (ArticleLabelFrequency.LabelPerArticle labelPerArticle : articleLabelFrequency.getLabels()) {
+                        double tf = BigDecimal.valueOf(labelPerArticle.getCount())
+                                .divide(BigDecimal.valueOf(articleLabelFrequency.getTotalLabel()), 20, RoundingMode.CEILING).doubleValue();
+                        labelPerArticle.setTf(tf);
+                    }
+                    articleLabelFrequencyService.updateOne(articleLabelFrequency).orElseThrow();
+                } catch (Exception ex) {
+                    log.warn("Calculate TF-IDF error with ArticleLabel id: {}", articleLabelFrequency.getId().toString());
+                }
+            }
+            log.info("=== end page: {}", i + 1);
+        }
+        return Optional.of(Boolean.TRUE);
+    }
+
+    /**
+     * Detect the article's nlp labels (PER, ORG, Normal label) and save them
+     */
+    @Override
+    public Optional<Boolean> handleNLPLabel() throws Exception {
+        List<TotalLabelFrequency> totalLabelFrequencies = totalLabelFrequencyService.getMany(CommandQueryTotalLabelFrequency.builder()
                 .hasProjection(true)
                 .totalLabelProjection(CommandQueryTotalLabelFrequency.TotalLabelProjection.builder()
                         .isId(false)
@@ -316,70 +356,51 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             throw new Exception("Existed labels is empty");
         Map<String, Long> labelWithCountMap = totalLabelFrequencies.stream()
                 .collect(Collectors.toMap(TotalLabelFrequency::getLabel, TotalLabelFrequency::getCount));
-        long totalArticleLabels = articleLabelFrequencyService.count().orElseThrow();
-        int sizePerPage = 100, totalPage = (int) ((totalArticleLabels + sizePerPage - 1) / sizePerPage);
+
+        double eligibleRate = thesisConfigurationService.getByName(ConfigurationName.ELIGIBLE_RATE.getName())
+                .map(m -> Double.valueOf(m.getValue()))
+                .orElse(0.05D);
+
+        List<ArticleIdfInfo> articleIdfInfos = new ArrayList<>();
+
+        long totalArticle = articleLabelFrequencyService.count().orElseThrow();
+        int sizePerPage = 100, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
         log.info("=== total page: {}", totalPage);
         for (int i = 0; i < totalPage; i++) {
-            log.info("=== current page: {}", i + 1);
             List<ArticleLabelFrequency> articleLabelFrequencies = articleLabelFrequencyService
                     .getMany(CommandQueryArticleLabelFrequency.builder()
-                            .isDescCreatedDate(true)
+                            .isDescId(true)
                             .page(i + 1)
                             .size(sizePerPage)
                             .build());
+            log.info("=== current page: {}, size: {}", i + 1, articleLabelFrequencies.size());
             for (ArticleLabelFrequency articleLabelFrequency : articleLabelFrequencies) {
-                try {
-                    if (articleLabelFrequency.getTotalLabel() <= 0 || CollectionUtils.isEmpty(articleLabelFrequency.getLabels())) {
-                        log.warn("Total label equals zero or label list is empty - articleId: {}", articleLabelFrequency.getArticleId());
-                        continue;
+                ArticleIdfInfo articleIdfInfo = ArticleIdfInfo.builder()
+                        .articleId(articleLabelFrequency.getArticleId())
+                        .idfInfos(new ArrayList<>())
+                        .build();
+                for (ArticleLabelFrequency.LabelPerArticle labelPerArticle : articleLabelFrequency.getLabels()) {
+                    double idf = Math.log(BigDecimal.valueOf(totalArticle)
+                            .divide(BigDecimal.valueOf(labelWithCountMap.get(labelPerArticle.getLabel())), 20, RoundingMode.CEILING)
+                            .doubleValue());
+                    double tfIdf = BigDecimal.valueOf(labelPerArticle.getTf())
+                            .multiply(BigDecimal.valueOf(idf))
+                            .setScale(20, RoundingMode.CEILING).doubleValue();
+                    if (tfIdf >= eligibleRate || NER_TYPES.contains(labelPerArticle.getNer())) {
+                        articleIdfInfo.getIdfInfos().add(ArticleIdfInfo.IdfInfo.builder()
+                                .label(labelPerArticle.getLabel())
+                                .ner(labelPerArticle.getNer())
+                                .tf(labelPerArticle.getTf())
+                                .idf(idf)
+                                .tfIdf(tfIdf)
+                                .build());
                     }
-                    for (ArticleLabelFrequency.LabelPerArticle labelPerArticle : articleLabelFrequency.getLabels()) {
-                        double tf = BigDecimal.valueOf(labelPerArticle.getCount())
-                                .divide(BigDecimal.valueOf(articleLabelFrequency.getTotalLabel()), 20, RoundingMode.CEILING).doubleValue();
-                        double idf = Math.log(BigDecimal.valueOf(totalArticleLabels)
-                                .divide(BigDecimal.valueOf(labelWithCountMap.get(labelPerArticle.getLabel())), 5, RoundingMode.CEILING).doubleValue());
-                        labelPerArticle.setTf(tf);
-                        labelPerArticle.setIdf(idf);
-                    }
-                    articleLabelFrequencyService.updateOne(articleLabelFrequency).orElseThrow(() -> new Exception("Can not update article label"));
-                } catch (Exception ex) {
-                    log.warn("Calculate TF-IDF error with ArticleAlgorithmLable id: {}", articleLabelFrequency.getId().toString());
                 }
-
+                articleIdfInfos.add(articleIdfInfo);
             }
             log.info("=== end page: {}", i + 1);
         }
-        return Optional.of(Boolean.TRUE);
-    }
-
-    @Override
-    public Optional<Boolean> simulateAvgTfIdf() throws Exception {
-        List<ArticleLabelFrequency> articleLabelFrequencies = articleLabelFrequencyService.getMany(CommandQueryArticleLabelFrequency.builder()
-                .isDescCreatedDate(true)
-                .page(1)
-                .size(99999)
-                .build());
-        if (CollectionUtils.isEmpty(articleLabelFrequencies))
-            throw new Exception("Article label is empty");
-        double eligibleRate = thesisConfigurationService.getByName(ConfigurationName.ELIGIBLE_RATE.getName())
-                .map(thesisConfiguration -> Double.valueOf(thesisConfiguration.getValue()))
-                .orElse(0.05D);
-        Map<String, Map<String, Double>> avgTfIdfByArticleLabel = new HashMap<>();
-        for (ArticleLabelFrequency articleLabelFrequency : articleLabelFrequencies) {
-            if (articleLabelFrequency.getLabels().get(0).getTf() == null)
-                continue;
-            Map<String, Double> eligibleArticleLabel = new HashMap<>();
-            for (ArticleLabelFrequency.LabelPerArticle labelPerArticle : articleLabelFrequency.getLabels()) {
-                double rate = BigDecimal.valueOf(labelPerArticle.getTf())
-                        .multiply(BigDecimal.valueOf(labelPerArticle.getIdf()))
-                        .setScale(20, RoundingMode.CEILING).doubleValue();
-                if (rate > eligibleRate)
-                    eligibleArticleLabel.put(labelPerArticle.getLabel(), rate);
-            }
-            if (MapUtils.isNotEmpty(eligibleArticleLabel))
-                avgTfIdfByArticleLabel.put(articleLabelFrequency.getId().toString(), eligibleArticleLabel);
-        }
-        CSVExporter.exportTfIdfRate(avgTfIdfByArticleLabel);
+        CSVExporter.exportTfIdfRate(articleIdfInfos);
         return Optional.of(Boolean.TRUE);
     }
 }
