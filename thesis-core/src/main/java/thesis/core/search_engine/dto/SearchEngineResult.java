@@ -15,7 +15,7 @@ import java.util.List;
 public class SearchEngineResult {
     private String search;
     private List<Article> articles;
-    private Integer total;
+    private Long total;
     private Integer page;
     private Integer size;
     private Integer totalPage;
