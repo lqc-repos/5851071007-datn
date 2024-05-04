@@ -13,13 +13,13 @@ import java.util.List;
 @Builder
 public class ArticleIdfInfo {
     private String articleId;
-    private List<IdfInfo> idfInfos;
+    private List<TfIdfInfo> TfIdfInfos;
 
     @NoArgsConstructor
     @AllArgsConstructor
     @Data
     @Builder
-    public static class IdfInfo {
+    public static class TfIdfInfo {
         private String label;
         private String ner;
         private Double tf;

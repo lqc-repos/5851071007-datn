@@ -18,10 +18,10 @@ public class CSVExporter {
             for (ArticleIdfInfo articleIdfInfo : articleIdfInfos) {
                 writer.newLine();
                 writer.write(String.format("%s,%s,%s,%s,%s,%s", articleIdfInfo.getArticleId(), "", "", "", "", ""));
-                for (ArticleIdfInfo.IdfInfo idfInfo : articleIdfInfo.getIdfInfos()) {
+                for (ArticleIdfInfo.TfIdfInfo TFIDFInfo : articleIdfInfo.getTfIdfInfos()) {
                     writer.newLine();
                     writer.write(String.format("%s,%s,%s,%s,%s,%s",
-                            "", idfInfo.getLabel(), idfInfo.getNer(), idfInfo.getTfIdf(), idfInfo.getTf(), idfInfo.getIdf()));
+                            "", TFIDFInfo.getLabel(), TFIDFInfo.getNer(), TFIDFInfo.getTfIdf(), TFIDFInfo.getTf(), TFIDFInfo.getIdf()));
                 }
             }
         } catch (IOException e) {
