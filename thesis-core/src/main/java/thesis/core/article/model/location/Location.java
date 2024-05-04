@@ -17,6 +17,6 @@ import java.util.Set;
 public class Location extends CommonDTO {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
-    private String topic;
+    private String location;
     private Set<String> articleIds;
 }

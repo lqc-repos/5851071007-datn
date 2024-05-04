@@ -4,7 +4,7 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.article.Article;
-import thesis.core.article.command.CommandQueryArticle;
+import thesis.core.article.command.CommandCommonQuery;
 import thesis.core.article.repository.ArticleRepository;
 
 import java.util.HashMap;
@@ -18,12 +18,12 @@ public class ArticleServiceImp implements ArticleService {
     private ArticleRepository articleRepository;
 
     @Override
-    public Optional<Long> count(CommandQueryArticle command) {
+    public Optional<Long> count(CommandCommonQuery command) {
         return articleRepository.count(new Document());
     }
 
     @Override
-    public List<Article> getMany(CommandQueryArticle command) {
+    public List<Article> getMany(CommandCommonQuery command) {
         Map<String, Object> sort = new HashMap<>();
         if (command.getIsDescCreatedDate() != null)
             sort.put("createdDate", command.getIsDescCreatedDate() ? -1 : 1);

@@ -3,10 +3,19 @@ package thesis.core.label_handler.service;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.article.Article;
-import thesis.core.article.command.CommandQueryArticle;
+import thesis.core.article.command.CommandCommonQuery;
+import thesis.core.article.model.author.Author;
+import thesis.core.article.model.author.service.AuthorService;
+import thesis.core.article.model.label.custom_label.CustomLabel;
+import thesis.core.article.model.label.custom_label.service.CustomLabelService;
+import thesis.core.article.model.location.Location;
+import thesis.core.article.model.location.service.LocationService;
+import thesis.core.article.model.topic.Topic;
+import thesis.core.article.model.topic.service.TopicService;
 import thesis.core.article.service.ArticleService;
 import thesis.core.configuration.service.ThesisConfigurationService;
 import thesis.core.crawler.crawled_article.CrawledArticle;
@@ -44,7 +53,18 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
     private NLPService nlpService;
     @Autowired
     private ThesisConfigurationService thesisConfigurationService;
+    @Autowired
+    private AuthorService authorService;
+    @Autowired
+    private TopicService topicService;
+    @Autowired
+    private LocationService locationService;
+    @Autowired
+    private CustomLabelService customLabelService;
 
+    /**
+     * Use to migrate crawled article to article collection
+     */
     @Override
     public Optional<Boolean> migrateArticle() {
         Set<String> urls = new HashSet<>();
@@ -75,10 +95,13 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
         return Optional.of(Boolean.TRUE);
     }
 
+    /**
+     * Get NLP labels and store labels into article_label_frequency and total_label_frequency collections
+     */
     @Override
-    public Optional<Boolean> storageFrequency() {
+    public Optional<Boolean> storeFrequency() {
         Set<String> existedTotalLabels = totalLabelFrequencyService.getExistedLabel();
-        Long totalArticle = articleService.count(CommandQueryArticle.builder().build()).orElseThrow();
+        Long totalArticle = articleService.count(CommandCommonQuery.builder().build()).orElseThrow();
         int sizePerPage = 100, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
         log.info("=== total page: {}", totalPage);
         Set<String> articleUrls = new HashSet<>();
@@ -86,7 +109,7 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             log.info("=== current page: {}", i + 1);
             List<ArticleLabelFrequency> articleLabelFrequencies = new ArrayList<>();
             Map<String, Long> totalArticleLabels = new HashMap<>();
-            List<Article> articles = articleService.getMany(CommandQueryArticle.builder()
+            List<Article> articles = articleService.getMany(CommandCommonQuery.builder()
                     .isDescPublicationDate(true)
                     .isDescCreatedDate(true)
                     .page(i + 1)
@@ -145,6 +168,137 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             totalLabelFrequencyService.increase(existedTotalLabels, totalArticleLabels);
             log.info("=== end page: {} - articleLabels: {} - totalByLabel: {}", i + 1, articleLabelFrequencies.size(), totalArticleLabels.size());
         }
+        return Optional.of(Boolean.TRUE);
+    }
+
+    /**
+     * Divide article components, ex: author, topic, labels,...
+     */
+    @Override
+    public Optional<Boolean> divideArticleComponent() {
+        Long totalArticle = articleService.count(CommandCommonQuery.builder().build()).orElseThrow();
+        int sizePerPage = 100, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
+        log.info("=== total page: {}", totalPage);
+        Set<String> articleUrls = new HashSet<>();
+        // author
+        Map<String, Author> authorMap = new HashMap<>();
+        {
+            List<Author> authors = authorService.getMany(CommandCommonQuery.builder()
+                    .page(1)
+                    .size(Integer.MAX_VALUE)
+                    .build());
+            authors.forEach(author -> authorMap.put(author.getAuthor(), author));
+        }
+        // topic
+        Map<String, Topic> topicMap = new HashMap<>();
+        {
+            List<Topic> topics = topicService.getMany(CommandCommonQuery.builder()
+                    .page(1)
+                    .size(Integer.MAX_VALUE)
+                    .build());
+            topics.forEach(topic -> topicMap.put(topic.getTopic(), topic));
+        }
+        // location
+        Map<String, Location> locationMap = new HashMap<>();
+        {
+            List<Location> locations = locationService.getMany(CommandCommonQuery.builder()
+                    .page(1)
+                    .size(Integer.MAX_VALUE)
+                    .build());
+            locations.forEach(location -> locationMap.put(location.getLocation(), location));
+        }
+        // custom labels
+        Map<String, CustomLabel> customLabelMap = new HashMap<>();
+        {
+            List<CustomLabel> customLabels = customLabelService.getMany(CommandCommonQuery.builder()
+                    .page(1)
+                    .size(Integer.MAX_VALUE)
+                    .build());
+            customLabels.forEach(customLabel -> customLabelMap.put(customLabel.getLabel(), customLabel));
+        }
+
+        for (int i = 0; i < totalPage; i++) {
+            log.info("=== current page: {}", i + 1);
+            List<Article> articles = articleService.getMany(CommandCommonQuery.builder()
+                    .isDescPublicationDate(true)
+                    .isDescCreatedDate(true)
+                    .page(i + 1)
+                    .size(sizePerPage)
+                    .build());
+            for (Article article : articles) {
+                try {
+                    if (articleUrls.contains(article.getUrl()))
+                        continue;
+
+                    // handle author
+                    List<String> authorList = article.getAuthors();
+                    if (CollectionUtils.isNotEmpty(authorList)) {
+                        for (String authorStr : authorList) {
+                            if (StringUtils.isBlank(authorStr))
+                                continue;
+                            String authorKey = authorStr.toLowerCase().replaceAll(" ", "_");
+                            Author author = authorMap.getOrDefault(authorKey, Author.builder()
+                                    .author(authorKey)
+                                    .articleIds(new HashSet<>())
+                                    .build());
+                            author.getArticleIds().add(article.getId().toHexString());
+                            authorMap.put(author.getAuthor(), author);
+                        }
+                    }
+                    //handle topic
+                    List<String> topicList = article.getTopics();
+                    if (CollectionUtils.isNotEmpty(topicList)) {
+                        for (String topicStr : topicList) {
+                            if (StringUtils.isBlank(topicStr))
+                                continue;
+                            String topicKey = topicStr.toLowerCase().replaceAll(" ", "_");
+                            Topic topic = topicMap.getOrDefault(topicKey, Topic.builder()
+                                    .topic(topicKey)
+                                    .articleIds(new HashSet<>())
+                                    .build());
+                            topic.getArticleIds().add(article.getId().toHexString());
+                            topicMap.put(topic.getTopic(), topic);
+                        }
+                    }
+                    //handle location
+                    String locationStr = article.getLocation();
+                    if (StringUtils.isNotBlank(locationStr)) {
+                        String locationKey = locationStr.toLowerCase().replaceAll(" ", "_");
+                        Location location = locationMap.getOrDefault(locationKey, Location.builder()
+                                .location(locationKey)
+                                .articleIds(new HashSet<>())
+                                .build());
+                        location.getArticleIds().add(article.getId().toHexString());
+                        locationMap.put(location.getLocation(), location);
+                    }
+                    //handle custom labels
+                    List<String> customLabelList = article.getLabels();
+                    if (CollectionUtils.isNotEmpty(customLabelList)) {
+                        for (String customLabelStr : customLabelList) {
+                            if (StringUtils.isBlank(customLabelStr))
+                                continue;
+                            String customLabelKey = customLabelStr.toLowerCase().replaceAll(" ", "_");
+                            CustomLabel customLabel = customLabelMap.getOrDefault(customLabelKey, CustomLabel.builder()
+                                    .label(customLabelKey)
+                                    .articleIds(new HashSet<>())
+                                    .build());
+                            customLabel.getArticleIds().add(article.getId().toHexString());
+                            customLabelMap.put(customLabel.getLabel(), customLabel);
+                        }
+                    }
+                    // add article url
+                    articleUrls.add(article.getUrl());
+                } catch (Exception ex) {
+                    log.warn("Can not divide article: {}", article.getId().toString());
+                }
+            }
+            log.info("=== end page: {}", i + 1);
+        }
+        // insert all
+        authorService.addMany(authorMap.values().stream().toList());
+        topicService.addMany(topicMap.values().stream().toList());
+        locationService.addMany(locationMap.values().stream().toList());
+        customLabelService.addMany(customLabelMap.values().stream().toList());
         return Optional.of(Boolean.TRUE);
     }
 

@@ -5,7 +5,9 @@ import java.util.Optional;
 public interface LabelHandlerService {
     Optional<Boolean> migrateArticle();
 
-    Optional<Boolean> storageFrequency();
+    Optional<Boolean> storeFrequency();
+
+    Optional<Boolean> divideArticleComponent();
 
     Optional<Boolean> calculateTfIdf() throws Exception;
 

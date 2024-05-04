@@ -36,7 +36,23 @@ public class LabelFrequencyController {
         try {
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(labelHandlerService.storageFrequency())
+                    .data(labelHandlerService.storeFrequency())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/divide_component")
+    public ResponseEntity<ResponseDTO<?>> divideComponent() {
+        try {
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(labelHandlerService.divideArticleComponent())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();

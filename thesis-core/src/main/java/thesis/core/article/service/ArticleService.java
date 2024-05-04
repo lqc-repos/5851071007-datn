@@ -1,15 +1,15 @@
 package thesis.core.article.service;
 
 import thesis.core.article.Article;
-import thesis.core.article.command.CommandQueryArticle;
+import thesis.core.article.command.CommandCommonQuery;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ArticleService {
-    Optional<Long> count(CommandQueryArticle command);
+    Optional<Long> count(CommandCommonQuery command);
 
-    List<Article> getMany(CommandQueryArticle command);
+    List<Article> getMany(CommandCommonQuery command);
 
     Optional<Boolean> add(Article article);
 

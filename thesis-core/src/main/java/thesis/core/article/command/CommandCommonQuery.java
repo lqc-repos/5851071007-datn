@@ -7,7 +7,7 @@ import lombok.*;
 @Data
 @Builder
 @ToString
-public class CommandQueryArticle {
+public class CommandCommonQuery {
     private Boolean isDescCreatedDate;
     private Boolean isDescPublicationDate;
     private Integer page;
