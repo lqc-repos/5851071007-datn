@@ -11,6 +11,7 @@ import thesis.core.article.service.ArticleService;
 import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.core.crawler.crawled_article.command.CommandQueryCrawledArticle;
 import thesis.core.crawler.crawled_article.service.CrawledArticleService;
+import thesis.core.label_handler.dto.ArticleWorldInfo;
 import thesis.core.label_handler.model.article_label_frequency.ArticleLabelFrequency;
 import thesis.core.label_handler.model.article_label_frequency.command.CommandQueryArticleLabelFrequency;
 import thesis.core.label_handler.model.article_label_frequency.service.ArticleLabelFrequencyService;
@@ -76,11 +77,11 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
         Long totalArticle = articleService.count(CommandQueryArticle.builder().build()).orElseThrow();
         int sizePerPage = 100, totalPage = (int) ((totalArticle + sizePerPage - 1) / sizePerPage);
         log.info("=== total page: {}", totalPage);
-        Set<String> urls = new HashSet<>();
+        Set<String> articleUrls = new HashSet<>();
         for (int i = 0; i < totalPage; i++) {
             log.info("=== current page: {}", i + 1);
             List<ArticleLabelFrequency> articleLabelFrequencies = new ArrayList<>();
-            Map<String, Long> totalByLabel = new HashMap<>();
+            Map<String, Long> totalArticleLabels = new HashMap<>();
             List<Article> articles = articleService.getMany(CommandQueryArticle.builder()
                     .isDescPublicationDate(true)
                     .isDescCreatedDate(true)
@@ -89,51 +90,56 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
                     .build());
             for (Article article : articles) {
                 try {
-                    if (urls.contains(article.getUrl()))
+                    if (articleUrls.contains(article.getUrl()))
                         continue;
-                    String contentBuilder = article.getTitle() + "\n" +
-                            article.getDescription() + "\n" +
-                            article.getContent() + "\n";
+                    String contentBuilder = article.getTitle().trim() + "\n" +
+                            article.getDescription().trim() + "\n" +
+                            article.getContent().trim();
                     Optional<AnnotatedWord> annotatedWordOptional = nlpService.annotate(contentBuilder);
                     if (annotatedWordOptional.isEmpty()) {
                         log.warn("Cannot annotate articleId {}", article.getId().toString());
                         continue;
                     }
                     AnnotatedWord annotatedWord = annotatedWordOptional.get();
-                    Map<String, Long> countByLabelSorted = annotatedWord.getTaggedWords().stream()
-                            .collect(Collectors.collectingAndThen(
-                                    Collectors.groupingBy(AnnotatedWord.TaggedWord::getWord, Collectors.counting()),
-                                    map -> map.entrySet().stream()
-                                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                                                    (oldValue, newValue) -> oldValue, LinkedHashMap::new))
-                            ));
-                    countByLabelSorted.keySet().forEach(key -> {
-                        if (!totalByLabel.containsKey(key))
-                            totalByLabel.put(key, 1L);
-                        else
-                            totalByLabel.put(key, totalByLabel.get(key) + 1);
+                    Map<String, ArticleWorldInfo> articleWorldInfoMap = new HashMap<>();
+                    annotatedWord.getTaggedWords().forEach(taggedWord -> {
+                        ArticleWorldInfo worldInfo = articleWorldInfoMap.getOrDefault(taggedWord.getWord(),
+                                ArticleWorldInfo.builder()
+                                        .ner(taggedWord.getNer())
+                                        .count(0L)
+                                        .build());
+                        worldInfo.incrementCount();
+                        articleWorldInfoMap.put(taggedWord.getWord(), worldInfo);
                     });
-                    long totalLabel = countByLabelSorted.values().stream().mapToLong(m -> m).sum();
+                    articleWorldInfoMap.keySet().forEach(key -> {
+                        if (!totalArticleLabels.containsKey(key))
+                            totalArticleLabels.put(key, 1L);
+                        else
+                            totalArticleLabels.put(key, totalArticleLabels.get(key) + 1);
+                    });
+                    long totalLabel = articleWorldInfoMap.values().stream().mapToLong(ArticleWorldInfo::getCount).sum();
+                    List<ArticleLabelFrequency.LabelPerArticle> labelPerArticles = articleWorldInfoMap.entrySet().stream()
+                            .map(k -> ArticleLabelFrequency.LabelPerArticle.builder()
+                                    .label(k.getKey())
+                                    .count(k.getValue().getCount())
+                                    .ner(k.getValue().getNer())
+                                    .build())
+                            .sorted(Comparator.comparing(ArticleLabelFrequency.LabelPerArticle::getCount).reversed())
+                            .toList();
                     ArticleLabelFrequency articleLabelFrequency = ArticleLabelFrequency.builder()
                             .articleId(article.getId().toString())
                             .totalLabel(totalLabel)
-                            .labels(countByLabelSorted.entrySet().stream()
-                                    .map(k -> ArticleLabelFrequency.LabelPerArticle.builder()
-                                            .label(k.getKey())
-                                            .count(k.getValue())
-                                            .build())
-                                    .collect(Collectors.toList()))
+                            .labels(labelPerArticles)
                             .build();
                     articleLabelFrequencies.add(articleLabelFrequency);
-                    urls.add(article.getUrl());
+                    articleUrls.add(article.getUrl());
                 } catch (Exception ex) {
                     log.warn("Annotate is error, article url: {}", article.getUrl());
                 }
             }
             articleLabelFrequencyService.addMany(articleLabelFrequencies);
-            totalLabelFrequencyService.increase(existedTotalLabels, totalByLabel);
-            log.info("=== end page: {} - articleAlgorithmLabels: {} - totalByLabel: {}", i + 1, articleLabelFrequencies.size(), totalByLabel.size());
+            totalLabelFrequencyService.increase(existedTotalLabels, totalArticleLabels);
+            log.info("=== end page: {} - articleAlgorithmLabels: {} - totalByLabel: {}", i + 1, articleLabelFrequencies.size(), totalArticleLabels.size());
         }
         return Optional.of(Boolean.TRUE);
     }
