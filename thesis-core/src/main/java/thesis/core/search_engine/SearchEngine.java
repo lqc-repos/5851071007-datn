@@ -1,5 +1,8 @@
 package thesis.core.search_engine;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +24,12 @@ import thesis.core.article.model.location.Location;
 import thesis.core.article.model.location.service.LocationService;
 import thesis.core.article.model.topic.Topic;
 import thesis.core.article.model.topic.service.TopicService;
+import thesis.core.configuration.ThesisConfiguration;
+import thesis.core.configuration.service.ThesisConfigurationService;
+import thesis.utils.constant.ConfigurationName;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -37,6 +44,7 @@ public class SearchEngine {
     private final Map<String, PERLabel> perLabelMap;
     private final Map<String, ORGLabel> orgLabelMap;
     private final Map<String, LOCLabel> locLabelMap;
+    private final Set<String> stopWords;
 
     @Autowired
     SearchEngine(AuthorService authorService,
@@ -46,7 +54,9 @@ public class SearchEngine {
                  NLPLabelService nlpLabelService,
                  ORGLabelService orgLabelService,
                  PERLabelService perLabelService,
-                 LOCLabelService locLabelService) {
+                 LOCLabelService locLabelService,
+                 ThesisConfigurationService thesisConfigurationService) throws JsonProcessingException {
+        JsonMapper jsonMapper = new JsonMapper();
         log.info("=== start init label maps");
         authorMap = authorService.getMany(CommandCommonQuery.builder()
                 .page(1)
@@ -80,6 +90,9 @@ public class SearchEngine {
                 .page(1)
                 .size(Integer.MAX_VALUE)
                 .build()).stream().collect(Collectors.toMap(LOCLabel::getLabel, locLabel -> locLabel));
+        stopWords = jsonMapper.readValue(thesisConfigurationService.getByName(ConfigurationName.STOP_WORD.getName())
+                .map(ThesisConfiguration::getValue).orElse("[]"), new TypeReference<>() {
+        });
         log.info("=== end init label maps");
     }
 }

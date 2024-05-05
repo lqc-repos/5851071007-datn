@@ -17,25 +17,26 @@ public class VNExpressConst {
     @Getter
     @AllArgsConstructor
     public enum TOPIC {
-        THOI_SU("1001005", "thoi-su"),
-        GOC_NHIN("1003450", "goc-nhin"),
-        THE_GIOI("1001002", "the-gioi"),
-        KINH_DOANH("1003159", "kinh-doanh"),
-        BAT_DONG_SAN("1005628", "bat-dong-san"),
-        KHOA_HOC("1001009", "khoa-hoc"),
-        GIAI_TRI("1002691", "giai-tri"),
-        THE_THAO("1002565", "the-thao"),
-        PHAP_LUAT("1001007", "phap-luat"),
-        GIAO_DUC("1003497", "giao-duc"),
-        SUC_KHOE("1003750", "suc-khoe"),
-        DOI_SONG("1002966", "doi-song"),
-        DU_LICH("1003231", "du-lich"),
-        SO_HOA("1002592", "so-hoa"),
-        XE("1001006", "xe"),
-        Y_KIEN("1001012", "y-kien"),
-        TAM_SU("1001014", "tam-su");
+        THOI_SU("1001005", "thoi-su", "thời sự"),
+        GOC_NHIN("1003450", "goc-nhin", "góc nhìn"),
+        THE_GIOI("1001002", "the-gioi", "thế giới"),
+        KINH_DOANH("1003159", "kinh-doanh", "kinh doanh"),
+        BAT_DONG_SAN("1005628", "bat-dong-san", "bất động sản"),
+        KHOA_HOC("1001009", "khoa-hoc", "khoa học"),
+        GIAI_TRI("1002691", "giai-tri", "giải trí"),
+        THE_THAO("1002565", "the-thao", "thể thao"),
+        PHAP_LUAT("1001007", "phap-luat", "pháp luật"),
+        GIAO_DUC("1003497", "giao-duc", "giáo dục"),
+        SUC_KHOE("1003750", "suc-khoe", "sức khỏe"),
+        DOI_SONG("1002966", "doi-song", "đời sống"),
+        DU_LICH("1003231", "du-lich", "du lịch"),
+        SO_HOA("1002592", "so-hoa", "số hóa"),
+        XE("1001006", "xe", "xe"),
+        Y_KIEN("1001012", "y-kien", "ý kiến"),
+        TAM_SU("1001014", "tam-su", "tâm sự");
         private final String categoryId;
         private final String value;
+        private final String vnValue;
 
         public static List<String> getCategoryIds() {
             return Arrays.stream(values()).map(TOPIC::getCategoryId).collect(Collectors.toList());
@@ -43,6 +44,14 @@ public class VNExpressConst {
 
         public static List<String> getValues() {
             return Arrays.stream(values()).map(TOPIC::getValue).collect(Collectors.toList());
+        }
+
+        public static List<String> getVnValues() {
+            return Arrays.stream(values()).map(TOPIC::getVnValue).collect(Collectors.toList());
+        }
+
+        public static TOPIC fromVnValue(String vnValue) {
+            return Arrays.stream(values()).filter(f -> f.vnValue.equals(vnValue)).findFirst().orElseThrow();
         }
     }
 

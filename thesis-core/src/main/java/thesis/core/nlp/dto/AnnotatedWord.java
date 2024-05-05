@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import thesis.utils.constant.NLPConst;
+import thesis.utils.constant.VNExpressConst;
 
 import java.util.List;
 
@@ -14,6 +16,8 @@ import java.util.List;
 public class AnnotatedWord {
     private String sentence;
     private List<TaggedWord> taggedWords;
+    private Long publicationTime;
+    private VNExpressConst.TOPIC topic;
 
     @AllArgsConstructor
     @NoArgsConstructor
@@ -24,5 +28,6 @@ public class AnnotatedWord {
         private String pos;
         private String ner;
         private String dep;
+        private NLPConst.LABEL_TYPE labelType;
     }
 }
