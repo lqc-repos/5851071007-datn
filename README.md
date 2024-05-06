@@ -46,3 +46,4 @@ Ngành: Công nghệ thông tin
 - Tìm hiểu về NLP:
 - Tối ưu công cụ search, cấu hình score cho các label type
 - Init UI tìm kiếm
+- Xử lý dữ liệu: stop words - bỏ các words không quan trọng, thêm vào word dict các từ gắn nhãn sai
