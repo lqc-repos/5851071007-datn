@@ -66,14 +66,15 @@ public class NLPServiceImp implements NLPService {
                 case B_PERSONS, I_PERSONS -> taggedWord.setLabelType(NLPConst.LABEL_TYPE.PER);
                 case B_LOCATIONS, I_LOCATIONS -> taggedWord.setLabelType(NLPConst.LABEL_TYPE.LOC);
                 case B_ORGANIZATIONS, I_ORGANIZATIONS -> taggedWord.setLabelType(NLPConst.LABEL_TYPE.ORG);
-                default -> taggedWord.setLabelType(NLPConst.LABEL_TYPE.UND);
+                default -> {
+                    if (VNExpressConst.TOPIC.getVnValues().contains(taggedWord.getWord())) {
+                        taggedWord.setLabelType(NLPConst.LABEL_TYPE.TOPIC);
+                    } else {
+                        taggedWord.setLabelType(NLPConst.LABEL_TYPE.UND);
+                    }
+                }
             }
         }
-
-        VNExpressConst.TOPIC.getVnValues().stream()
-                .filter(sentence::contains)
-                .findFirst()
-                .map(VNExpressConst.TOPIC::fromVnValue).ifPresent(annotatedWord::setTopic);
 
         for (int left = 0; left < annotatedWord.getTaggedWords().size() - 1; left++) {
             StringBuilder stringBuilder = new StringBuilder();

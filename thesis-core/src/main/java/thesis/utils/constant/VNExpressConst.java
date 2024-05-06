@@ -17,23 +17,23 @@ public class VNExpressConst {
     @Getter
     @AllArgsConstructor
     public enum TOPIC {
-        THOI_SU("1001005", "thoi-su", "thời sự"),
-        GOC_NHIN("1003450", "goc-nhin", "góc nhìn"),
-        THE_GIOI("1001002", "the-gioi", "thế giới"),
-        KINH_DOANH("1003159", "kinh-doanh", "kinh doanh"),
-        BAT_DONG_SAN("1005628", "bat-dong-san", "bất động sản"),
-        KHOA_HOC("1001009", "khoa-hoc", "khoa học"),
-        GIAI_TRI("1002691", "giai-tri", "giải trí"),
-        THE_THAO("1002565", "the-thao", "thể thao"),
-        PHAP_LUAT("1001007", "phap-luat", "pháp luật"),
-        GIAO_DUC("1003497", "giao-duc", "giáo dục"),
-        SUC_KHOE("1003750", "suc-khoe", "sức khỏe"),
-        DOI_SONG("1002966", "doi-song", "đời sống"),
-        DU_LICH("1003231", "du-lich", "du lịch"),
-        SO_HOA("1002592", "so-hoa", "số hóa"),
+        THOI_SU("1001005", "thoi-su", "thời_sự"),
+        GOC_NHIN("1003450", "goc-nhin", "góc_nhìn"),
+        THE_GIOI("1001002", "the-gioi", "thế_giới"),
+        KINH_DOANH("1003159", "kinh-doanh", "kinh_doanh"),
+        BAT_DONG_SAN("1005628", "bat-dong-san", "bất_động_sản"),
+        KHOA_HOC("1001009", "khoa-hoc", "khoa_học"),
+        GIAI_TRI("1002691", "giai-tri", "giải_trí"),
+        THE_THAO("1002565", "the-thao", "thể_thao"),
+        PHAP_LUAT("1001007", "phap-luat", "pháp_luật"),
+        GIAO_DUC("1003497", "giao-duc", "giáo_dục"),
+        SUC_KHOE("1003750", "suc-khoe", "sức_khỏe"),
+        DOI_SONG("1002966", "doi-song", "đời_sống"),
+        DU_LICH("1003231", "du-lich", "du_lịch"),
+        SO_HOA("1002592", "so-hoa", "số_hóa"),
         XE("1001006", "xe", "xe"),
-        Y_KIEN("1001012", "y-kien", "ý kiến"),
-        TAM_SU("1001014", "tam-su", "tâm sự");
+        Y_KIEN("1001012", "y-kien", "ý_kiến"),
+        TAM_SU("1001014", "tam-su", "tâm_sự");
         private final String categoryId;
         private final String value;
         private final String vnValue;

@@ -59,11 +59,12 @@ public class NLPConst {
     @AllArgsConstructor
     @Getter
     public enum LABEL_TYPE {
-        AUTHOR,
-        TOPIC,
-        PER,
-        ORG,
-        LOC,
-        UND
+        AUTHOR("author"),
+        TOPIC("topic"),
+        PER("per"),
+        ORG("org"),
+        LOC("loc"),
+        UND("und");
+        private final String value;
     }
 }

@@ -1,6 +1,7 @@
 package thesis.core.search_engine.service;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import thesis.core.search_engine.command.CommandSearchArticle;
 import thesis.core.search_engine.dto.SearchEngineResult;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SearchEngineServiceImp implements SearchEngineService {
@@ -39,48 +41,66 @@ public class SearchEngineServiceImp implements SearchEngineService {
         if (annotatedWordOptional.isEmpty())
             throw new Exception(String.format("Can not annotate the search text \"%s\"", command.getSearch()));
         AnnotatedWord annotatedWord = annotatedWordOptional.get();
-        Set<String> articleIds = new HashSet<>();
+        Map<String, Long> articleIdSearchMap = new HashMap<>();
 
-        if (annotatedWord.getTopic() != null) {
-            Topic topic = searchEngine.getTopicMap().get(annotatedWord.getTopic().getVnValue().replace(" ", "_"));
-            articleIds.addAll(topic.getArticleIds());
-        }
         for (AnnotatedWord.TaggedWord word : annotatedWord.getTaggedWords()) {
             if (searchEngine.getStopWords().contains(word.getWord()))
                 continue;
+            String formattedWord = word.getWord().toLowerCase();
+            Set<String> articleIds = new HashSet<>();
             switch (word.getLabelType()) {
                 case AUTHOR -> {
-                    Author author = searchEngine.getAuthorMap().get(word.getWord());
-                    if (author != null)
+                    Author author = searchEngine.getAuthorMap().get(formattedWord);
+                    if (author != null && CollectionUtils.isNotEmpty(author.getArticleIds())) {
                         articleIds.addAll(author.getArticleIds());
+                    }
+                }
+                case TOPIC -> {
+                    Topic topic = searchEngine.getTopicMap().get(formattedWord);
+                    if (topic != null && CollectionUtils.isNotEmpty(topic.getArticleIds())) {
+                        articleIds.addAll(topic.getArticleIds());
+                    }
                 }
                 case PER -> {
-                    PERLabel perLabel = searchEngine.getPerLabelMap().get(word.getWord());
-                    if (perLabel != null)
+                    PERLabel perLabel = searchEngine.getPerLabelMap().get(formattedWord);
+                    if (perLabel != null && CollectionUtils.isNotEmpty(perLabel.getArticleIds())) {
                         articleIds.addAll(perLabel.getArticleIds());
+                    }
                 }
                 case ORG -> {
-                    ORGLabel orgLabel = searchEngine.getOrgLabelMap().get(word.getWord());
-                    if (orgLabel != null)
+                    ORGLabel orgLabel = searchEngine.getOrgLabelMap().get(formattedWord);
+                    if (orgLabel != null && CollectionUtils.isNotEmpty(orgLabel.getArticleIds())) {
                         articleIds.addAll(orgLabel.getArticleIds());
+                    }
                 }
                 case LOC -> {
-                    LOCLabel locLabel = searchEngine.getLocLabelMap().get(word.getWord());
-                    if (locLabel != null)
+                    LOCLabel locLabel = searchEngine.getLocLabelMap().get(formattedWord);
+                    if (locLabel != null && CollectionUtils.isNotEmpty(locLabel.getArticleIds())) {
                         articleIds.addAll(locLabel.getArticleIds());
+                    }
                 }
                 case UND -> {
-                    CustomLabel customLabel = searchEngine.getCustomLabelMap().get(word.getWord());
-                    if (customLabel != null)
+                    CustomLabel customLabel = searchEngine.getCustomLabelMap().get(formattedWord);
+                    if (customLabel != null && CollectionUtils.isNotEmpty(customLabel.getArticleIds())) {
                         articleIds.addAll(customLabel.getArticleIds());
-                    NLPLabel nlpLabel = searchEngine.getNlpLabelMap().get(word.getWord());
-                    if (nlpLabel != null)
+                        break;
+                    }
+                    NLPLabel nlpLabel = searchEngine.getNlpLabelMap().get(formattedWord);
+                    if (nlpLabel != null && CollectionUtils.isNotEmpty(nlpLabel.getArticleIds())) {
                         articleIds.addAll(nlpLabel.getArticleIds());
+                    }
+                }
+            }
+            if (CollectionUtils.isNotEmpty(articleIds)) {
+                long labelScore = Optional.ofNullable(searchEngine.getLabelScoreMap().get(word.getLabelType().getValue()))
+                        .orElse(1L);
+                for (String articleId : articleIds) {
+                    articleIdSearchMap.put(articleId, articleIdSearchMap.getOrDefault(articleId, 0L) + labelScore);
                 }
             }
         }
 
-        if (CollectionUtils.isEmpty(articleIds))
+        if (MapUtils.isEmpty(articleIdSearchMap))
             return Optional.of(SearchEngineResult.builder()
                     .search(command.getSearch())
                     .articles(new ArrayList<>())
@@ -89,19 +109,31 @@ public class SearchEngineServiceImp implements SearchEngineService {
                     .page(command.getPage())
                     .size(command.getSize())
                     .build());
+        Set<String> articleIds = articleIdSearchMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         long totalArticle = articleService.count(CommandCommonQuery.builder()
                 .articleIds(articleIds)
                 .build()).orElse(0L);
+        LinkedHashMap<String, Article> articlePerPage = new LinkedHashMap<>();
+
+        int skip = (command.getPage() - 1) * command.getSize();
+        articleIds.stream().skip(skip).limit(command.getSize()).collect(Collectors.toCollection(LinkedHashSet::new))
+                .forEach(id -> articlePerPage.put(id, null));
+
         List<Article> articles = articleService.getMany(CommandCommonQuery.builder()
-                .articleIds(articleIds)
+                .articleIds(articlePerPage.keySet())
                 .page(command.getPage())
                 .size(command.getSize())
                 .build());
-
+        for (Article article : articles) {
+            articlePerPage.put(article.getId().toString(), article);
+        }
         return Optional.of(SearchEngineResult.builder()
                 .search(command.getSearch())
-                .articles(articles)
+                .articles(new LinkedList<>(articlePerPage.values()))
                 .total(totalArticle)
                 .totalPage((int) ((totalArticle + command.getSize() - 1) / command.getSize()))
                 .page(command.getPage())

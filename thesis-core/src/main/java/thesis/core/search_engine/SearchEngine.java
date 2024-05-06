@@ -44,6 +44,7 @@ public class SearchEngine {
     private final Map<String, PERLabel> perLabelMap;
     private final Map<String, ORGLabel> orgLabelMap;
     private final Map<String, LOCLabel> locLabelMap;
+    private final Map<String, Long> labelScoreMap;
     private final Set<String> stopWords;
 
     @Autowired
@@ -56,7 +57,7 @@ public class SearchEngine {
                  PERLabelService perLabelService,
                  LOCLabelService locLabelService,
                  ThesisConfigurationService thesisConfigurationService) throws JsonProcessingException {
-        JsonMapper jsonMapper = new JsonMapper();
+        JsonMapper objectMapper = new JsonMapper();
         log.info("=== start init label maps");
         authorMap = authorService.getMany(CommandCommonQuery.builder()
                 .page(1)
@@ -90,8 +91,11 @@ public class SearchEngine {
                 .page(1)
                 .size(Integer.MAX_VALUE)
                 .build()).stream().collect(Collectors.toMap(LOCLabel::getLabel, locLabel -> locLabel));
-        stopWords = jsonMapper.readValue(thesisConfigurationService.getByName(ConfigurationName.STOP_WORD.getName())
+        stopWords = objectMapper.readValue(thesisConfigurationService.getByName(ConfigurationName.STOP_WORD.getName())
                 .map(ThesisConfiguration::getValue).orElse("[]"), new TypeReference<>() {
+        });
+        labelScoreMap = objectMapper.readValue(thesisConfigurationService.getByName(ConfigurationName.LABEL_SCORE.getName())
+                .map(ThesisConfiguration::getValue).orElse("{}"), new TypeReference<>() {
         });
         log.info("=== end init label maps");
     }
