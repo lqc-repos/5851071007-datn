@@ -41,3 +41,8 @@ Ngành: Công nghệ thông tin
 **Tuần 5 (29/04 - 05/05)**
 - Tìm hiểu về NLP:
 - Phân loại và xử lý nhãn trên tệp 32,000 bài báo
+
+**Tuần 6 (06/05 - 12/05)**
+- Tìm hiểu về NLP:
+- Tối ưu công cụ search, cấu hình score cho các label type
+- Init UI tìm kiếm
