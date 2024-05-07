@@ -93,7 +93,7 @@ public class SearchEngineServiceImp implements SearchEngineService {
             }
             if (CollectionUtils.isNotEmpty(articleIds)) {
                 long labelScore = Optional.ofNullable(searchEngine.getLabelScoreMap().get(word.getLabelType().getValue()))
-                        .orElse(1L);
+                        .orElse(0L);
                 for (String articleId : articleIds) {
                     articleIdSearchMap.put(articleId, articleIdSearchMap.getOrDefault(articleId, 0L) + labelScore);
                 }
