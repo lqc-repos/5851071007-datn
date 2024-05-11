@@ -43,7 +43,7 @@
                                     <h3 class="excerpt" th:text="${article.getDescription()}"></h3>
                                     <div class="text">
 <!--                                        <p th:each="lineOfPost : ${#strings.listSplit(article.getContent(), '\n')}" th:text="${lineOfPost}"></p>-->
-                                        <p th:text="${article.content}"></p>
+                                        <p id="content-part" th:each="content : ${article.content.split('<new_line>')}" th:text="${content}"></p>
                                     </div>
                                 </div>
                             </div>

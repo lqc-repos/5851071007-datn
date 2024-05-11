@@ -4170,3 +4170,10 @@ body.lock-position {
 .search_post_img {
     justify-self: center;
 }
+
+#content-part{
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}

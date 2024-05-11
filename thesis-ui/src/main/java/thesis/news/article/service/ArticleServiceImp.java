@@ -40,6 +40,9 @@ public class ArticleServiceImp implements ArticleService {
                 .build()).orElseThrow();
         List<Article> articles = objectMapper.convertValue(response.getData(), new TypeReference<>() {
         });
+        articles.forEach(article -> {
+            article.setContent(article.getContent().replaceAll("\n", "<new_line>"));
+        });
         return CollectionUtils.isNotEmpty(articles) ? articles.get(0) : null;
     }
 
