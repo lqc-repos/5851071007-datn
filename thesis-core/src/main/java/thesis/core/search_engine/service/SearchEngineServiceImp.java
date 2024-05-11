@@ -125,7 +125,7 @@ public class SearchEngineServiceImp implements SearchEngineService {
 
         List<Article> articles = articleService.get(CommandCommonQuery.builder()
                 .articleIds(articlePerPage.keySet())
-                .page(command.getPage())
+                .page(1)
                 .size(command.getSize())
                 .build());
         for (Article article : articles) {
