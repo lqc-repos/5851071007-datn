@@ -36,6 +36,10 @@ public class ArticleServiceImp implements ArticleService {
             queryMap.put("_id", new Document("$in",
                     command.getArticleIds().stream().map(ObjectId::new).collect(Collectors.toList())));
 
+        if (CollectionUtils.isNotEmpty(command.getTopics()))
+            queryMap.put("topic", new Document("$in",
+                    command.getTopics().stream().map(ObjectId::new).collect(Collectors.toList())));
+
         Map<String, Object> sortMap = new HashMap<>();
         if (command.getIsDescId() != null)
             sortMap.put("_id", command.getIsDescId() ? -1 : 1);
