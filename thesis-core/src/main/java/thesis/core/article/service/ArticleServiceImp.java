@@ -30,19 +30,28 @@ public class ArticleServiceImp implements ArticleService {
     }
 
     @Override
-    public List<Article> getMany(CommandCommonQuery command) {
-        Map<String, Object> query = new HashMap<>();
+    public List<Article> get(CommandCommonQuery command) {
+        Map<String, Object> queryMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(command.getArticleIds()))
-            query.put("_id", new Document("$in",
+            queryMap.put("_id", new Document("$in",
                     command.getArticleIds().stream().map(ObjectId::new).collect(Collectors.toList())));
-        Map<String, Object> sort = new HashMap<>();
+
+        Map<String, Object> sortMap = new HashMap<>();
         if (command.getIsDescId() != null)
-            sort.put("_id", command.getIsDescId() ? -1 : 1);
+            sortMap.put("_id", command.getIsDescId() ? -1 : 1);
         if (command.getIsDescCreatedDate() != null)
-            sort.put("createdDate", command.getIsDescCreatedDate() ? -1 : 1);
+            sortMap.put("createdDate", command.getIsDescCreatedDate() ? -1 : 1);
         if (command.getIsDescPublicationDate() != null)
-            sort.put("publicationDate", command.getIsDescPublicationDate() ? -1 : 1);
-        return articleRepository.find(query, sort, (command.getPage() - 1) * command.getSize(), command.getSize());
+            sortMap.put("publicationDate", command.getIsDescPublicationDate() ? -1 : 1);
+
+        Map<String, Object> projectionMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(command.getProjections())) {
+            for (String projection : command.getProjections()) {
+                projectionMap.put(projection, "1");
+            }
+        }
+        return articleRepository.find(queryMap, sortMap, projectionMap,
+                (command.getPage() - 1) * command.getSize(), command.getSize());
     }
 
     @Override

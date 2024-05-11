@@ -123,7 +123,7 @@ public class SearchEngineServiceImp implements SearchEngineService {
         articleIds.stream().skip(skip).limit(command.getSize()).collect(Collectors.toCollection(LinkedHashSet::new))
                 .forEach(id -> articlePerPage.put(id, null));
 
-        List<Article> articles = articleService.getMany(CommandCommonQuery.builder()
+        List<Article> articles = articleService.get(CommandCommonQuery.builder()
                 .articleIds(articlePerPage.keySet())
                 .page(command.getPage())
                 .size(command.getSize())

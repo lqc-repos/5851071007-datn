@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface ArticleService {
     Optional<Long> count(CommandCommonQuery command);
 
-    List<Article> getMany(CommandCommonQuery command);
+    List<Article> get(CommandCommonQuery command);
 
     Optional<Boolean> add(Article article);
 

@@ -23,7 +23,7 @@ public class TotalLabelFrequencyServiceImp implements TotalLabelFrequencyService
         Map<String, Object> projection = new HashMap<>();
         projection.put("_id", 0);
         projection.put("label", 1);
-        List<TotalLabelFrequency> totalLabelFrequencies = totalLabelFrequencyRepository.findAll(new Document(), new Document(), projection);
+        List<TotalLabelFrequency> totalLabelFrequencies = totalLabelFrequencyRepository.find(new Document(), new Document(), projection);
         return new HashSet<>(totalLabelFrequencies.stream().map(TotalLabelFrequency::getLabel).toList());
     }
 
@@ -38,7 +38,7 @@ public class TotalLabelFrequencyServiceImp implements TotalLabelFrequencyService
             projection.put("label", BooleanUtils.isTrue(command.getTotalLabelProjection().getIsLabel()) ? 1 : 0);
             projection.put("count", BooleanUtils.isTrue(command.getTotalLabelProjection().getIsCount()) ? 1 : 0);
         }
-        return totalLabelFrequencyRepository.findAll(query, new Document(), projection);
+        return totalLabelFrequencyRepository.find(query, new Document(), projection);
     }
 
     @Override

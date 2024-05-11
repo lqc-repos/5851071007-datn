@@ -126,7 +126,7 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             log.info("=== current page: {}", i + 1);
             List<ArticleLabelFrequency> articleLabelFrequencies = new ArrayList<>();
             Map<String, Long> totalArticleLabels = new HashMap<>();
-            List<Article> articles = articleService.getMany(CommandCommonQuery.builder()
+            List<Article> articles = articleService.get(CommandCommonQuery.builder()
                     .isDescId(true)
                     .page(i + 1)
                     .size(sizePerPage)
@@ -235,7 +235,7 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
 
         for (int i = 0; i < totalPage; i++) {
             log.info("=== current page: {}", i + 1);
-            List<Article> articles = articleService.getMany(CommandCommonQuery.builder()
+            List<Article> articles = articleService.get(CommandCommonQuery.builder()
                     .isDescId(true)
                     .page(i + 1)
                     .size(sizePerPage)

@@ -20,7 +20,7 @@ public class CrawledArticleErrorServiceImp implements CrawledArticleErrorService
     public List<CrawledArticleError> getByUrls(List<String> urls) {
         Map<String, Object> query = new HashMap<>();
         query.put("url", new org.bson.Document("$in", urls));
-        return crawledArticleErrorRepository.findAll(query, new Document(), new Document());
+        return crawledArticleErrorRepository.find(query, new Document(), new Document());
     }
 
     @Override

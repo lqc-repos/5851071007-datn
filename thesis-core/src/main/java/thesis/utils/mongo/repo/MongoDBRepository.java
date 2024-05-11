@@ -12,9 +12,9 @@ public interface MongoDBRepository<Clazz> {
 
     List<Clazz> find(Map<String, Object> query, Map<String, Object> sort, int skip, int limit);
 
-    List<Clazz> findAll(Map<String, Object> query, Map<String, Object> sort, Map<String, Object> projection, int skip, int limit);
+    List<Clazz> find(Map<String, Object> query, Map<String, Object> sort, Map<String, Object> projection, int skip, int limit);
 
-    List<Clazz> findAll(Map<String, Object> query, Map<String, Object> sort, Map<String, Object> projection);
+    List<Clazz> find(Map<String, Object> query, Map<String, Object> sort, Map<String, Object> projection);
 
     Optional<Clazz> findOne(Map<String, Object> query, Map<String, Object> sort);
 

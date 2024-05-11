@@ -36,7 +36,7 @@ public class CrawledArticleServiceImp implements CrawledArticleService {
     public List<CrawledArticle> getByUrls(List<String> urls) {
         Map<String, Object> query = new HashMap<>();
         query.put("url", new org.bson.Document("$in", urls));
-        return crawledArticleRepository.findAll(query, new Document(), new Document());
+        return crawledArticleRepository.find(query, new Document(), new Document());
     }
 
     @Override

@@ -13,7 +13,7 @@ public interface MongoDBOperator<Clazz> {
 
     Clazz findOne(Document query, Document sort);
 
-    List<Clazz> findAll(Document query, Document sort, Document projection);
+    List<Clazz> find(Document query, Document sort, Document projection);
 
     Long count(Document query);
 

@@ -37,7 +37,7 @@ public class MongoDBOperatorImp<Clazz> implements MongoDBOperator<Clazz> {
     }
 
     @Override
-    public List<Clazz> findAll(Document query, Document sort, Document projection) {
+    public List<Clazz> find(Document query, Document sort, Document projection) {
         return this.mongoCollection.find(query).sort(sort).projection(projection).into(new ArrayList<>());
     }
 

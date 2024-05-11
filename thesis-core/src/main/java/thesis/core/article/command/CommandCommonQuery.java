@@ -11,6 +11,7 @@ import java.util.Set;
 @ToString
 public class CommandCommonQuery {
     private Set<String> articleIds;
+    private Set<String> projections;
     private Boolean isDescId;
     private Boolean isDescCreatedDate;
     private Boolean isDescPublicationDate;
