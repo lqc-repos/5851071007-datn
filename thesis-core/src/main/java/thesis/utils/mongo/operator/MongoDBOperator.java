@@ -9,6 +9,8 @@ import java.util.List;
 public interface MongoDBOperator<Clazz> {
     List<Clazz> find(Document query, Document sort, int skip, int limit);
 
+    List<Clazz> find(Document query, Document sort, Document projection, int skip, int limit);
+
     Clazz findOne(Document query, Document sort);
 
     List<Clazz> findAll(Document query, Document sort, Document projection);

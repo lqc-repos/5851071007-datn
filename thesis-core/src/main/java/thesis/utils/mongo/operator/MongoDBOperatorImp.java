@@ -27,6 +27,11 @@ public class MongoDBOperatorImp<Clazz> implements MongoDBOperator<Clazz> {
     }
 
     @Override
+    public List<Clazz> find(Document query, Document sort, Document projection, int skip, int limit) {
+        return this.mongoCollection.find(query).sort(sort).skip(skip).limit(limit).projection(projection).into(new ArrayList<>());
+    }
+
+    @Override
     public Clazz findOne(Document query, Document sort) {
         return this.mongoCollection.find(query).sort(sort).first();
     }

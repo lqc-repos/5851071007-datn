@@ -16,6 +16,14 @@ public abstract class MongoDBRepositoryImp<Clazz extends CommonDTO> implements M
     }
 
     @Override
+    public List<Clazz> findAll(Map<String, Object> query, Map<String, Object> sort, Map<String, Object> projection, int skip, int limit) {
+        Document queryDoc = new Document(query);
+        Document sortDoc = new Document(sort);
+        Document projectionDoc = new Document(projection);
+        return getMongoDBOperation().findAll(queryDoc, sortDoc, projectionDoc);
+    }
+
+    @Override
     public List<Clazz> findAll(Map<String, Object> query, Map<String, Object> sort, Map<String, Object> projection) {
         Document queryDoc = new Document(query);
         Document sortDoc = new Document(sort);
