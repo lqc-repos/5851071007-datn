@@ -26,6 +26,11 @@ public class ArticleServiceImp implements ArticleService {
         if (CollectionUtils.isNotEmpty(command.getArticleIds()))
             query.put("_id", new Document("$in",
                     command.getArticleIds().stream().map(ObjectId::new).collect(Collectors.toList())));
+
+        if (CollectionUtils.isNotEmpty(command.getTopics()))
+            query.put("topics", new Document("$in", command.getTopics()));
+
+
         return articleRepository.count(new Document(query));
     }
 
@@ -37,8 +42,7 @@ public class ArticleServiceImp implements ArticleService {
                     command.getArticleIds().stream().map(ObjectId::new).collect(Collectors.toList())));
 
         if (CollectionUtils.isNotEmpty(command.getTopics()))
-            queryMap.put("topic", new Document("$in",
-                    command.getTopics().stream().map(ObjectId::new).collect(Collectors.toList())));
+            queryMap.put("topics", new Document("$in", command.getTopics()));
 
         Map<String, Object> sortMap = new HashMap<>();
         if (command.getIsDescId() != null)

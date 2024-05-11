@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface SearchEngineService {
     Optional<SearchEngineResult> searchArticle(CommandSearchArticle command) throws Exception;
+
+    Optional<SearchEngineResult> searchArticleByTopic(CommandSearchArticle command) throws Exception;
 }

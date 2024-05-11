@@ -140,4 +140,27 @@ public class SearchEngineServiceImp implements SearchEngineService {
                 .size(command.getSize())
                 .build());
     }
+
+    @Override
+    public Optional<SearchEngineResult> searchArticleByTopic(CommandSearchArticle command) throws Exception {
+        long totalArticle = articleService.count(CommandCommonQuery.builder()
+                .topics(Set.of(command.getTopic()))
+                .build()).orElse(0L);
+        List<Article> articles = articleService.get(CommandCommonQuery.builder()
+                .isDescCreatedDate(true)
+                .isDescPublicationDate(true)
+                .page(command.getPage())
+                .size(command.getSize())
+                .topics(Set.of(command.getTopic()))
+                .build());
+        return Optional.of(SearchEngineResult.builder()
+                .search(command.getSearch())
+                .articles(new LinkedList<>(articles))
+                .topic(command.getTopic())
+                .total(totalArticle)
+                .totalPage((int) ((totalArticle + command.getSize() - 1) / command.getSize()))
+                .page(command.getPage())
+                .size(command.getSize())
+                .build());
+    }
 }

@@ -1,7 +1,6 @@
-package thesis.news.search.dto;
+package thesis.news.article.dto;
 
 import lombok.*;
-import thesis.news.article.dto.Article;
 import thesis.utils.dto.CommonForm;
 
 import java.util.List;
@@ -11,9 +10,7 @@ import java.util.List;
 @Data
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class SearchForm extends CommonForm {
-    private String search;
-    private String topic;
+public class ArticleForm extends CommonForm {
     private List<Article> articles;
-    private String errorMsg;
+    private String topic;
 }

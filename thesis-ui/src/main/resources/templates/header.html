@@ -1,0 +1,380 @@
+<div class="header_top_bar_container clearfix">
+    <div class="header_top_bar">
+        <form class="search" th:action="${URLConst.SEARCH}" method="get">
+            <input type="text" name="s" placeholder="Tìm kiếm..." value="" class="search_input hint">
+            <input type="submit" class="search_submit" value="">
+        </form>
+        <div class="latest_news_scrolling_list_container">
+<!--            <ul>-->
+<!--                <li class="category">ĐỌC BÁO</li>-->
+<!--                <li class="left"><a href="#"></a></li>-->
+<!--                <li class="right"><a href="#"></a></li>-->
+<!--                <li class="posts">-->
+<!--                    <ul class="latest_news_scrolling_list">-->
+<!--                        <li th:each="latestArt : ${latestArticles}">-->
+<!--                            <a href="post.html" title="" th:text="${latestArt.getTitle()}"></a>-->
+<!--                            <span class="date">-->
+<!--                                     <abbr class="timeago current"-->
+<!--                                           th:text="${#dates.format(latestArt.getPublicationDate() * 1000, 'dd/MM/yyyy')}"></abbr>-->
+<!--                                </span>-->
+<!--                        </li>-->
+<!--                    </ul>-->
+<!--                </li>-->
+<!--            </ul>-->
+        </div>
+    </div>
+</div>
+<div class="header_container">
+    <div class="header clearfix">
+        <div class="logo">
+            <h1><a th:href="${URLConst.HOME}" title="Pressroom">Thesis News</a></h1>
+            <h4>News with NLP Search</h4>
+        </div>
+        <div class="placeholder">728 x 90</div>
+    </div>
+</div>
+<div class="menu_container clearfix">
+    <nav>
+        <ul class="sf-menu">
+            <li th:class="${topic == null ? 'selected' : ''}">
+                <a th:href="${URLConst.HOME}" th:text="#{search.search}">
+                </a>
+            </li>
+            <li th:class="${topic == 'Thời sự' ? 'selected' : ''}">
+                <a th:href="@{'/topic?v=Thời sự'}" th:text="#{topic.thoi-su}">
+                </a>
+            </li>
+            <li th:class="${topic == 'Góc nhìn' ? 'selected' : ''}">
+                <a th:href="@{'/topic?v=Góc nhìn'}" th:text="#{topic.goc-nhin}">
+                </a>
+            </li>
+            <li th:class="${topic == 'Thế giới' ? 'selected' : ''}">
+                <a th:href="@{'/topic?v=Thế giới'}" th:text="#{topic.the-gioi}">
+                </a>
+            </li>
+            <li th:class="${topic == 'Kinh doanh' ? 'selected' : ''}">
+                <a th:href="@{'/topic?v=Kinh doanh'}" th:text="#{topic.kinh-doanh}">
+                </a>
+            </li>
+            <li th:class="${topic == 'Bất động sản' ? 'selected' : ''}">
+                <a th:href="@{'/topic?v=Bất động sản'}" th:text="#{topic.bat-dong-san}">
+                </a>
+            </li>
+            <li th:class="${topic != null and !#lists.contains({'Thời sự', 'Góc nhìn', 'Thế giới','Kinh doanh','Bất động sản'}, topic) ? 'selected submenu' : 'submenu'}">
+            <a href="#">
+                    Chủ đề khác
+                </a>
+                <ul>
+                    <li>
+                        <a th:href="@{'/topic?v=Khoa học'}" th:text="#{topic.khoa-hoc}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Giải trí'}" th:text="#{topic.giai-tri}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Thể thao'}" th:text="#{topic.the-thao}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Pháp luật'}" th:text="#{topic.phap-luat}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Giáo dục'}" th:text="#{topic.giao-duc}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Sức khỏe'}" th:text="#{topic.suc-khoe}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Đời sống'}" th:text="#{topic.doi-song}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Du lịch'}" th:text="#{topic.du-lich}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Số hóa'}" th:text="#{topic.so-hoa}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Xe'}" th:text="#{topic.xe}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Ý kiến'}" th:text="#{topic.y-kien}">
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{'/topic?v=Tâm sự'}" th:text="#{topic.tam-su}">
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+    <div class="mobile_menu_container">
+        <a href="#" class="mobile-menu-switch">
+            <span class="line"></span>
+            <span class="line"></span>
+            <span class="line"></span>
+        </a>
+        <div class="mobile-menu-divider"></div>
+        <nav>
+            <ul class="mobile-menu">
+                <li class="submenu selected">
+                    <a href="home.html" title="Home">
+                        Home
+                    </a>
+                    <ul>
+                        <li class="selected">
+                            <a href="home.html" title="Home Style 1">
+                                Home Style 1
+                            </a>
+                        </li>
+                        <li>
+                            <a href="home_2.html" title="Home Style 2">
+                                Home Style 2
+                            </a>
+                        </li>
+                        <li>
+                            <a href="home_3.html" title="Home Style 3">
+                                Home Style 3
+                            </a>
+                        </li>
+                        <li>
+                            <a href="home_4.html" title="Home Style 3">
+                                Home Style 4
+                            </a>
+                        </li>
+                        <li>
+                            <a href="home_5.html" title="Home Style 5">
+                                Home Style 5
+                            </a>
+                        </li>
+                        <li>
+                            <a href="home_6.html" title="Home Style 6">
+                                Home Style 6
+                            </a>
+                        </li>
+                        <li>
+                            <a href="home_7.html" title="Home Style 7">
+                                Home Style 7
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="about.html" title="Pages">
+                        Pages
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="about.html" title="About Style 1">
+                                About Style 1
+                            </a>
+                        </li>
+                        <li>
+                            <a href="about_2.html" title="About Style 2">
+                                About Style 2
+                            </a>
+                        </li>
+                        <li>
+                            <a href="default.html" title="Default">
+                                Default
+                            </a>
+                        </li>
+                        <li>
+                            <a href="404.html" title="404 Not Found">
+                                404 Not Found
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="post.html" title="Post Formats">
+                        Post Formats
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="post.html" title="Post Default">
+                                Post Default
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_gallery.html" title="Post Gallery">
+                                Post Gallery
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_small_image.html" title="Post Small Image">
+                                Post Small Image
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_video.html" title="Post Video YouTube">
+                                Post Video Youtube
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_video_2.html" title="Post Video Vimeo">
+                                Post Video Vimeo
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_soundcloud.html" title="Post Soundcloud">
+                                Post Soundcloud
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_review.html" title="Post Review Style 1">
+                                Post Review Style 1
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_review_2.html" title="Post Review Style 2">
+                                Post Review Style 2
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_quote.html" title="Post Quote Style 1">
+                                Post Quote Style 1
+                            </a>
+                        </li>
+                        <li>
+                            <a href="post_quote_2.html" title="Post Quote Style 2">
+                                Post Quote Style 2
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="blog.html" title="Blog">
+                        Blog
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="blog_small_slider.html" title="Blog Small Slider">
+                                Blog Small Slider
+                            </a>
+                        </li>
+                        <li class="submenu">
+                            <a href="blog.html" title="Blog 1 column">
+                                Blog 1 Column
+                            </a>
+                            <ul>
+                                <li>
+                                    <a href="blog.html" title="Blog With Right Sidebar">
+                                        Blog With Right Sidebar
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="blog_left_sidebar.html" title="Blog With Left Sidebar">
+                                        Blog With Left Sidebar
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="blog_2_columns.html" title="Blog 2 columns">
+                                Blog 2 Columns
+                            </a>
+                            <ul>
+                                <li>
+                                    <a href="blog_2_columns.html" title="Right Sidebar">
+                                        Right Sidebar
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="blog_2_columns_left_sidebar.html" title="Left Sidebar">
+                                        Left Sidebar
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="blog_3_columns.html" title="Blog 3 Columns">
+                                Blog 3 Columns
+                            </a>
+                        </li>
+                        <li>
+                            <a href="search.html?s=Maecenas+Mauris" title="Search Page Template">
+                                Search Page Template
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="authors.html" title="Authors">
+                        Authors
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="authors.html" title="Authors List">
+                                Authors List
+                            </a>
+                        </li>
+                        <li>
+                            <a href="author.html" title="Author Single">
+                                Author Single
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="category_health.html" title="Categories">
+                        Categories
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="category_health.html" title="Health">
+                                Health
+                            </a>
+                        </li>
+                        <li>
+                            <a href="category_science.html" title="Science">
+                                Science
+                            </a>
+                        </li>
+                        <li>
+                            <a href="category_sports.html" title="Sports">
+                                Sports
+                            </a>
+                        </li>
+                        <li>
+                            <a href="category_world.html" title="World">
+                                World
+                            </a>
+                        </li>
+                        <li>
+                            <a href="category_lifestyle.html" title="Lifestyle">
+                                Lifestyle
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="contact.html" title="Contact">
+                        Contact
+                    </a>
+                    <ul class="expand_left_contact">
+                        <li>
+                            <a href="contact.html" title="Contact Style 1">
+                                Contact Style 1
+                            </a>
+                        </li>
+                        <li>
+                            <a href="contact_2.html" title="Contact Style 2">
+                                Contact Style 2
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

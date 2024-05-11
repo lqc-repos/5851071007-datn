@@ -52,4 +52,20 @@ public class ArticleController {
                     .build(), HttpStatus.OK);
         }
     }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/search_by_topic")
+    public ResponseEntity<ResponseDTO<?>> searchArticleByTopic(@RequestBody CommandSearchArticle command) {
+        try {
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(searchEngineService.searchArticleByTopic(command))
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
 }

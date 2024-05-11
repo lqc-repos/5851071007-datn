@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class SearchEngineResult {
     private String search;
+    private String topic;
     private List<Article> articles;
     private Long total;
     private Integer page;

@@ -1472,4 +1472,14 @@ jQuery(document).ready(function($){
 				$(this).css("font-size", size_to_set + "px");
 		});
 	});
+	document.getElementById('search_input').addEventListener('input', function() {
+		var searchInput = document.getElementById('search_input');
+		var placeholder = searchInput.placeholder;
+
+		if (searchInput.value === '') {
+			searchInput.placeholder = '';
+		} else {
+			searchInput.placeholder = placeholder;
+		}
+	});
 });

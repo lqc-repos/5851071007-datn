@@ -24,11 +24,12 @@
 </head>
 <body>
 <div class="site_container">
-    <div th:include="/header.html"></div>
+	<div th:include="header.html" th:with="topic=${searchForm.getTopic()}">
+    </div>
     <div class="page">
         <div class="page_header clearfix page_margin_top">
             <div class="page_header_left">
-                <h1 class="page_title" th:utext="#{search.search-result}"></h1>
+                <h1 class="page_title" th:text="${searchForm.getTopic()}"></h1>
             </div>
             <div class="page_header_right">
                 <ul class="bread_crumb">
@@ -41,13 +42,7 @@
                         &nbsp;
                     </li>
                     <li>
-                        Pages
-                    </li>
-                    <li class="separator icon_small_arrow right_gray">
-                        &nbsp;
-                    </li>
-                    <li>
-                        Search Results
+                        Category
                     </li>
                 </ul>
             </div>
@@ -58,23 +53,8 @@
                 <hr class="divider subheader_arrow">
                 <hr class="divider last">
             </div>
-            <div class="row page_margin_top">
+            <div class="row">
                 <div class="column column_1_1">
-                    <div class="row">
-                        <h4 th:if="${!#strings.isEmpty(searchForm.getSearch())}" class="box_header"><span
-                                th:text="#{search.result-for}"></span> '<strong><span
-                                th:text="${searchForm.getSearch()}"></span></strong>'
-                            (<span th:text="${searchForm.getTotal()}"></span>)</h4>
-                        <h4 th:if="${#strings.isEmpty(searchForm.getSearch())}" class="box_header">Nhập từ khóa vào ô
-                            dưới để tìm kiếm</h4>
-                        <form method="get" th:action="${URLConst.SEARCH}" class="search_form page_margin_top">
-                            <input id="search_input" class="text_input" name="s" type="text"
-                                   th:value="${searchForm.getSearch()}"
-                                   placeholder="Tìm kiếm...">
-                            <input type="hidden" name="page" value="1">
-                            <input type="submit" th:value="#{search.search}" class="more active">
-                        </form>
-                    </div>
                     <div class="row">
                         <ul class="blog column column_1_1">
                             <li class="post search_post" th:each="article : ${searchForm.getArticles()}">
@@ -107,26 +87,26 @@
                     </div>
                     <ul th:if="${searchForm.getTotalPage() > 0}" class="pagination clearfix page_margin_top_section">
                         <li class="left" th:if="${searchForm.getPage() > 1}">
-                            <a th:href="@{'/search?s=' +${searchForm.getSearch()}+  '&page=' + ${searchForm.getPage() - 1}}" title="">&nbsp;</a>
+                            <a th:href="@{'/topic?v=' +${searchForm.getTopic()}+  '&page=' + ${searchForm.getPage() - 1}}" title="">&nbsp;</a>
                         </li>
                         <th:block th:each="pageNumber : ${#numbers.sequence(searchForm.getPage() - 3, searchForm.getPage() - 1)}">
-                            <li th:if="${pageNumber>0}"><a th:href="@{'/search?s=' +${searchForm.getSearch()}+  '&page=' + ${pageNumber}}"><span th:text="${pageNumber}">1</span></a></li>
+                            <li th:if="${pageNumber>0}"><a th:href="@{'/topic?v=' +${searchForm.getTopic()}+  '&page=' + ${pageNumber}}"><span th:text="${pageNumber}">1</span></a></li>
                         </th:block>
 
                         <li class="selected"><a title="" th:text="${searchForm.getPage()}"></a></li>
 
                         <th:block th:each="pageNumber : ${#numbers.sequence(searchForm.getPage() + 1, searchForm.getPage() + 3)}">
-                            <li th:if="${pageNumber<searchForm.getTotalPage()}"><a th:href="@{'/search?s=' +${searchForm.getSearch()}+  '&page=' + ${pageNumber}}"><span th:text="${pageNumber}">1</span></a></li>
+                            <li th:if="${pageNumber<searchForm.getTotalPage()}"><a th:href="@{'/topic?v=' +${searchForm.getTopic()}+  '&page=' + ${pageNumber}}"><span th:text="${pageNumber}">1</span></a></li>
                         </th:block>
                         <li class="right" th:if="${searchForm.getPage() < searchForm.getTotalPage() - 1}">
-                            <a th:href="@{'/search?s=' +${searchForm.getSearch()}+  '&page=' + ${searchForm.getPage() + 1}}" title="">&nbsp;</a>
+                            <a th:href="@{'/topic?v=' +${searchForm.getTopic()}+  '&page=' + ${searchForm.getPage() + 1}}" title="">&nbsp;</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
-    <div th:include="footer.html"></div>
+	<div th:include="footer.html"></div>
 </div>
 <div class="background_overlay"></div>
 <!--js-->

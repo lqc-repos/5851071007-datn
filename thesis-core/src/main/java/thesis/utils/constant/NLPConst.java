@@ -43,10 +43,10 @@ public class NLPConst {
     public enum NER {
         B_PERSONS("B-PER"),
         I_PERSONS("I-PER"),
-        B_LOCATIONS("B_LOC"),
-        I_LOCATIONS("I_LOC"),
-        B_ORGANIZATIONS("B_ORG"),
-        I_ORGANIZATIONS("I_ORG"),
+        B_LOCATIONS("B-LOC"),
+        I_LOCATIONS("I-LOC"),
+        B_ORGANIZATIONS("B-ORG"),
+        I_ORGANIZATIONS("I-ORG"),
         MISCELLANEOUS_ENTITIES("MISC"),
         O("O");
         private final String value;

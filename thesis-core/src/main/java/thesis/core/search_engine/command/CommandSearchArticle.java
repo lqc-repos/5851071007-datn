@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CommandSearchArticle {
     private String search;
+    private String topic;
     private Integer page;
     private Integer size;
 }
