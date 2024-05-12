@@ -67,7 +67,7 @@ public class NLPServiceImp implements NLPService {
                 case B_LOCATIONS, I_LOCATIONS -> taggedWord.setLabelType(NLPConst.LABEL_TYPE.LOC);
                 case B_ORGANIZATIONS, I_ORGANIZATIONS -> taggedWord.setLabelType(NLPConst.LABEL_TYPE.ORG);
                 default -> {
-                    if (VNExpressConst.TOPIC.getVnValues().contains(taggedWord.getWord())) {
+                    if (VNExpressConst.TOPIC.getVnValues().contains(taggedWord.getWord().toLowerCase())) {
                         taggedWord.setLabelType(NLPConst.LABEL_TYPE.TOPIC);
                     } else {
                         taggedWord.setLabelType(NLPConst.LABEL_TYPE.UND);

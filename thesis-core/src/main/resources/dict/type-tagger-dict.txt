@@ -1,5 +1,6 @@
 bài_báo_của B-A
 bài_báo_bởi B-A
+bài_viết_bởi B-A
 bài_viết_của B-A
 của_tác_giả B-A
 của_nhà_báo B-A

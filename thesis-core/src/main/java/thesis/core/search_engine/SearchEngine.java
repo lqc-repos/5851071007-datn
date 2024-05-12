@@ -26,6 +26,7 @@ import thesis.core.article.model.topic.Topic;
 import thesis.core.article.model.topic.service.TopicService;
 import thesis.core.configuration.ThesisConfiguration;
 import thesis.core.configuration.service.ThesisConfigurationService;
+import thesis.core.nlp.process.DataProcessing;
 import thesis.utils.constant.ConfigurationName;
 
 import java.util.Map;
@@ -56,7 +57,8 @@ public class SearchEngine {
                  ORGLabelService orgLabelService,
                  PERLabelService perLabelService,
                  LOCLabelService locLabelService,
-                 ThesisConfigurationService thesisConfigurationService) throws JsonProcessingException {
+                 ThesisConfigurationService thesisConfigurationService,
+                 DataProcessing dataProcessing) throws JsonProcessingException {
         JsonMapper objectMapper = new JsonMapper();
         log.info("=== start init label maps");
         authorMap = authorService.getMany(CommandCommonQuery.builder()
@@ -91,12 +93,10 @@ public class SearchEngine {
                 .page(1)
                 .size(Integer.MAX_VALUE)
                 .build()).stream().collect(Collectors.toMap(LOCLabel::getLabel, locLabel -> locLabel));
-        stopWords = objectMapper.readValue(thesisConfigurationService.getByName(ConfigurationName.STOP_WORD.getName())
-                .map(ThesisConfiguration::getValue).orElse("[]"), new TypeReference<>() {
-        });
         labelScoreMap = objectMapper.readValue(thesisConfigurationService.getByName(ConfigurationName.LABEL_SCORE.getName())
                 .map(ThesisConfiguration::getValue).orElse("{}"), new TypeReference<>() {
         });
+        stopWords = dataProcessing.getSTOP_WORDS();
         log.info("=== end init label maps");
     }
 }
