@@ -39,7 +39,7 @@ public class NewsController {
         SearchForm searchForm = searchService.search(search, page, size).orElse(SearchForm.builder()
                 .articles(new ArrayList<>())
                 .build());
-        if (page != null && page > searchForm.getTotalPage()) {
+        if (page != null && searchForm.getTotalPage() > 0 && page > searchForm.getTotalPage()) {
             return "404";
         }
         model.addAttribute("searchForm", searchForm);
@@ -61,4 +61,5 @@ public class NewsController {
         model.addAttribute("searchForm", searchService.searchByTopic(name, page, size).orElseThrow());
         return "category";
     }
+
 }

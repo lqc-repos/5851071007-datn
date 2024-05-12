@@ -31,21 +31,6 @@
             <div class="page_header_left">
                 <h1 class="page_title" th:text="${searchForm.getTopic()}"></h1>
             </div>
-            <div class="page_header_right">
-                <ul class="bread_crumb">
-                    <li>
-                        <a title="Home" href="home.html">
-                            Home
-                        </a>
-                    </li>
-                    <li class="separator icon_small_arrow right_gray">
-                        &nbsp;
-                    </li>
-                    <li>
-                        Category
-                    </li>
-                </ul>
-            </div>
         </div>
         <div class="page_layout clearfix">
             <div class="divider_block clearfix">
@@ -66,7 +51,7 @@
                                         <!--                                            class="arrow_comments"></span></a>-->
                                     </h3>
                                     <ul class="post_details">
-                                        <li class="category"><a href="category_world.html"
+                                        <li class="category"><a
                                                                 th:title="@{${article.getTopics().get(0)}}"
                                                                 th:text="@{${article.getTopics().get(0)}}"></a></li>
                                         <li class="date"
@@ -78,7 +63,7 @@
                                     <!--                                            class="arrow"></span><span>READ MORE</span></a>-->
                                 </div>
                                 <div class="search_post_img">
-                                    <a href="post.html" th:title="@{${article.getTitle()}}">
+                                    <a th:href="@{'/post?id=' + ${article.getId()}}" th:title="@{${article.getTitle()}}">
                                         <img src='images/samples/330x242/no_image.png' alt='img'>
                                     </a>
                                 </div>

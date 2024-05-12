@@ -458,7 +458,7 @@
 	}
 	.search .search_input:focus
 	{
-		width: 70px;
+		width: 300px;
 	}
 	/* --- comments list --- */
 	#comments_list .comment_details
@@ -1504,6 +1504,11 @@
 	.divider.last
 	{
 		width: 250px;
+	}
+	.search_form input[type='submit'] {
+		width: 30%;
+		margin-top: 10px;
+		float: right;
 	}
 }
 @media screen and (max-device-width: 480px)

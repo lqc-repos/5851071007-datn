@@ -34,9 +34,9 @@
                         <div class="post single">
                             <h1 class="post_title" th:text="${article.getTitle()}"></h1>
                             <ul class="post_details clearfix">
-                                <li class="detail category"><a href="category_health.html" th:text="${article.getTopics().get(0)}"></a></li>
+                                <li class="detail category"><a th:href="@{'/topic?v='+${article.getTopics().get(0)}}" th:text="${article.getTopics().get(0)}"></a></li>
                                 <li class="detail date" th:text="${#dates.format(article.getPublicationDate() * 1000, 'HH:mm, dd/MM/yyyy')}"></li>
-                                <li class="detail author">Bởi <a href="author.html" th:text="${article.getAuthors().get(0)}"></a></li>
+                                <li th:if="${!#strings.isEmpty(article.getAuthors().get(0))}" class="detail author">Bởi <a th:href="@{'/search?s=bài viết bởi '+${article.authors.get(0)}}" th:text="${article.getAuthors().get(0)}"></a></li>
                             </ul>
                             <div class="post_content page_margin_top_section clearfix">
                                 <div class="content_box">
@@ -57,7 +57,7 @@
                         </ul>
                         <ul class="taxonomies categories right clearfix">
                             <li>
-                                <a href="category_health.html" th:text="${article.getTopics().get(0)}"></a>
+                                <a th:href="@{'/topic?v='+${article.getTopics().get(0)}}" th:text="${article.getTopics().get(0)}"></a>
                             </li>
                         </ul>
                     </div>

@@ -1,7 +1,6 @@
 package thesis.news.article.service;
 
 import thesis.news.article.dto.Article;
-import thesis.utils.dto.CommandCommonQuery;
 
 import java.util.List;
 
