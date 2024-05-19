@@ -11,4 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CommandSearch {
     private String search;
+    private String topic;
+    private Integer page;
+    private Integer size;
+    private Boolean isCustomTag;
 }

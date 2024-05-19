@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import thesis.news.http.dto.request.OkHttpRequest;
 import thesis.news.http.dto.response.OkHttpResponse;
 import thesis.news.http.service.OkHttpService;
+import thesis.news.search.command.CommandSearch;
 import thesis.news.search.dto.SearchForm;
 import thesis.utils.dto.CommandCommonQuery;
 
@@ -28,19 +29,20 @@ public class SearchServiceImp implements SearchService {
     private ObjectMapper objectMapper;
 
     @Override
-    public Optional<SearchForm> search(String search, Integer page, Integer size) throws Exception {
+    public Optional<SearchForm> search(CommandSearch command) throws Exception {
         OkHttpResponse response = okHttpService.postRequest(OkHttpRequest.builder()
                 .url(thesisApiHost + thesisArticleUrl + thesisArticleSearchPath)
                 .data(CommandCommonQuery.builder()
-                        .search(search)
-                        .page(page == null ? 1 : page)
-                        .size(size == null ? 10 : size)
+                        .search(command.getSearch())
+                        .page(command.getPage() == null ? 1 : command.getPage())
+                        .size(command.getSize() == null ? 10 : command.getSize())
+                        .isCustomTag(command.getIsCustomTag())
                         .build())
                 .build()).orElseThrow();
         SearchForm searchForm = objectMapper.convertValue(response.getData(), SearchForm.class);
         if (searchForm == null)
             searchForm = SearchForm.builder()
-                    .search(search)
+                    .search(command.getSearch())
                     .build();
         return Optional.of(searchForm);
     }

@@ -2,6 +2,7 @@ package thesis.core.search_engine.service;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,59 +44,65 @@ public class SearchEngineServiceImp implements SearchEngineService {
         AnnotatedWord annotatedWord = annotatedWordOptional.get();
         Map<String, Long> articleIdSearchMap = new HashMap<>();
 
-        for (AnnotatedWord.TaggedWord word : annotatedWord.getTaggedWords()) {
-            if (searchEngine.getStopWords().contains(word.getWord()))
-                continue;
-            String formattedWord = word.getWord().toLowerCase();
-            Set<String> articleIds = new HashSet<>();
-            switch (word.getLabelType()) {
-                case AUTHOR -> {
-                    Author author = searchEngine.getAuthorMap().get(formattedWord);
-                    if (author != null && CollectionUtils.isNotEmpty(author.getArticleIds())) {
-                        articleIds.addAll(author.getArticleIds());
-                    }
-                }
-                case TOPIC -> {
-                    Topic topic = searchEngine.getTopicMap().get(formattedWord);
-                    if (topic != null && CollectionUtils.isNotEmpty(topic.getArticleIds())) {
-                        articleIds.addAll(topic.getArticleIds());
-                    }
-                }
-                case PER -> {
-                    PERLabel perLabel = searchEngine.getPerLabelMap().get(formattedWord);
-                    if (perLabel != null && CollectionUtils.isNotEmpty(perLabel.getArticleIds())) {
-                        articleIds.addAll(perLabel.getArticleIds());
-                    }
-                }
-                case ORG -> {
-                    ORGLabel orgLabel = searchEngine.getOrgLabelMap().get(formattedWord);
-                    if (orgLabel != null && CollectionUtils.isNotEmpty(orgLabel.getArticleIds())) {
-                        articleIds.addAll(orgLabel.getArticleIds());
-                    }
-                }
-                case LOC -> {
-                    LOCLabel locLabel = searchEngine.getLocLabelMap().get(formattedWord);
-                    if (locLabel != null && CollectionUtils.isNotEmpty(locLabel.getArticleIds())) {
-                        articleIds.addAll(locLabel.getArticleIds());
-                    }
-                }
-                case UND -> {
-                    CustomLabel customLabel = searchEngine.getCustomLabelMap().get(formattedWord);
-                    if (customLabel != null && CollectionUtils.isNotEmpty(customLabel.getArticleIds())) {
-                        articleIds.addAll(customLabel.getArticleIds());
-                        break;
-                    }
-                    NLPLabel nlpLabel = searchEngine.getNlpLabelMap().get(formattedWord);
-                    if (nlpLabel != null && CollectionUtils.isNotEmpty(nlpLabel.getArticleIds())) {
-                        articleIds.addAll(nlpLabel.getArticleIds());
-                    }
-                }
+        if (BooleanUtils.isTrue(command.getIsCustomTag())) {
+            for (String articleId : getArticleIdsFromCustomLabel(command.getSearch())) {
+                articleIdSearchMap.put(articleId, 1L);
             }
-            if (CollectionUtils.isNotEmpty(articleIds)) {
-                long labelScore = Optional.ofNullable(searchEngine.getLabelScoreMap().get(word.getLabelType().getValue()))
-                        .orElse(0L);
-                for (String articleId : articleIds) {
-                    articleIdSearchMap.put(articleId, articleIdSearchMap.getOrDefault(articleId, 0L) + labelScore);
+        } else {
+            for (AnnotatedWord.TaggedWord word : annotatedWord.getTaggedWords()) {
+                if (searchEngine.getStopWords().contains(word.getWord()))
+                    continue;
+                String formattedWord = word.getWord().toLowerCase();
+                Set<String> articleIds = new HashSet<>();
+                switch (word.getLabelType()) {
+                    case AUTHOR -> {
+                        Author author = searchEngine.getAuthorMap().get(formattedWord);
+                        if (author != null && CollectionUtils.isNotEmpty(author.getArticleIds())) {
+                            articleIds.addAll(author.getArticleIds());
+                        }
+                    }
+                    case TOPIC -> {
+                        Topic topic = searchEngine.getTopicMap().get(formattedWord);
+                        if (topic != null && CollectionUtils.isNotEmpty(topic.getArticleIds())) {
+                            articleIds.addAll(topic.getArticleIds());
+                        }
+                    }
+                    case PER -> {
+                        PERLabel perLabel = searchEngine.getPerLabelMap().get(formattedWord);
+                        if (perLabel != null && CollectionUtils.isNotEmpty(perLabel.getArticleIds())) {
+                            articleIds.addAll(perLabel.getArticleIds());
+                        }
+                    }
+                    case ORG -> {
+                        ORGLabel orgLabel = searchEngine.getOrgLabelMap().get(formattedWord);
+                        if (orgLabel != null && CollectionUtils.isNotEmpty(orgLabel.getArticleIds())) {
+                            articleIds.addAll(orgLabel.getArticleIds());
+                        }
+                    }
+                    case LOC -> {
+                        LOCLabel locLabel = searchEngine.getLocLabelMap().get(formattedWord);
+                        if (locLabel != null && CollectionUtils.isNotEmpty(locLabel.getArticleIds())) {
+                            articleIds.addAll(locLabel.getArticleIds());
+                        }
+                    }
+                    case UND -> {
+                        CustomLabel customLabel = searchEngine.getCustomLabelMap().get(formattedWord);
+                        if (customLabel != null && CollectionUtils.isNotEmpty(customLabel.getArticleIds())) {
+                            articleIds.addAll(customLabel.getArticleIds());
+                            break;
+                        }
+                        NLPLabel nlpLabel = searchEngine.getNlpLabelMap().get(formattedWord);
+                        if (nlpLabel != null && CollectionUtils.isNotEmpty(nlpLabel.getArticleIds())) {
+                            articleIds.addAll(nlpLabel.getArticleIds());
+                        }
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(articleIds)) {
+                    long labelScore = Optional.ofNullable(searchEngine.getLabelScoreMap().get(word.getLabelType().getValue()))
+                            .orElse(0L);
+                    for (String articleId : articleIds) {
+                        articleIdSearchMap.put(articleId, articleIdSearchMap.getOrDefault(articleId, 0L) + labelScore);
+                    }
                 }
             }
         }
@@ -162,5 +169,13 @@ public class SearchEngineServiceImp implements SearchEngineService {
                 .page(command.getPage())
                 .size(command.getSize())
                 .build());
+    }
+
+    private Set<String> getArticleIdsFromCustomLabel(String search) {
+        String label = search.replaceAll("\\s+", "_").toLowerCase();
+        CustomLabel customLabel = searchEngine.getCustomLabelMap().get(label);
+        if (customLabel != null && CollectionUtils.isNotEmpty(customLabel.getArticleIds()))
+            return customLabel.getArticleIds();
+        return Collections.emptySet();
     }
 }

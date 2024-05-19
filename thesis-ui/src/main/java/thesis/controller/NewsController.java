@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import thesis.news.article.service.ArticleService;
+import thesis.news.search.command.CommandSearch;
 import thesis.news.search.dto.SearchForm;
 import thesis.news.search.service.SearchService;
 import thesis.utils.aop.StaticConstant;
@@ -35,10 +36,17 @@ public class NewsController {
     @StaticConstant
     public String search(Model model, @RequestParam(value = "s", required = false) String search,
                          @RequestParam(value = "page", required = false) Integer page,
-                         @RequestParam(value = "size", required = false) Integer size) throws Exception {
-        SearchForm searchForm = searchService.search(search, page, size).orElse(SearchForm.builder()
-                .articles(new ArrayList<>())
-                .build());
+                         @RequestParam(value = "size", required = false) Integer size,
+                         @RequestParam(value = "isCustomTag", required = false) Boolean isCustomTag) throws Exception {
+        SearchForm searchForm = searchService.search(CommandSearch.builder()
+                        .search(search)
+                        .page(page)
+                        .size(size)
+                        .isCustomTag(isCustomTag)
+                        .build())
+                .orElse(SearchForm.builder()
+                        .articles(new ArrayList<>())
+                        .build());
         if (page != null && searchForm.getTotalPage() > 0 && page > searchForm.getTotalPage()) {
             return "404";
         }

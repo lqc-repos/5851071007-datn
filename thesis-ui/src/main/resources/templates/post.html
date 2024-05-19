@@ -52,7 +52,7 @@
                     <div class="row page_margin_top">
                         <ul class="taxonomies tags left clearfix">
                             <li th:each="label : ${article.getLabels()}">
-                                <a th:href="@{'search?s=' + ${label}}" th:text="${label}"></a>
+                                <a th:href="@{'search?s=' + ${label}} + '&isCustomTag=true'" th:text="${label}"></a>
                             </li>
                         </ul>
                         <ul class="taxonomies categories right clearfix">

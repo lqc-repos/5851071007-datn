@@ -19,4 +19,5 @@ public class CommandCommonQuery {
     private Boolean isDescPublicationDate;
     private Integer page;
     private Integer size;
+    private Boolean isCustomTag;
 }
