@@ -47,3 +47,13 @@ Ngành: Công nghệ thông tin
 - Tối ưu công cụ search, cấu hình score cho các label type
 - Init UI tìm kiếm
 - Xử lý dữ liệu: stop words - bỏ các words không quan trọng, thêm vào word dict các từ gắn nhãn sai
+
+**Tuần 7 (13/05 - 19/05)**
+- Tìm hiểu về NLP:
+- Tối ưu công cụ search, cấu hình score cho các label type
+- Init UI tìm kiếm
+- Xử lý dữ liệu: stop words - bỏ các words không quan trọng, thêm vào word dict các từ gắn nhãn sai
+
+**Tuần 8 (20/05 - 26/05)**
+- Nghiên cứu NLP - NER
+- Viết báo cáo
