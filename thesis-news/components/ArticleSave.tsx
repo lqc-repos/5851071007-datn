@@ -1,25 +1,47 @@
 "use client";
 import { useEffect, useState } from "react";
 import CardCustom from "./Card";
+import { usePersonStore } from "@/story";
+import CardIndex from "./CardIndex";
+import { Box, CircularProgress, Pagination } from "@mui/material";
 
 const ArticleSave: React.FC = () => {
-  // api đã xem
-  // const [data, setData] = useState([]);
-  // const [isLoading, setIsLoading] = useState(false);
-  // const getPostSave = async () => {
-  //   setIsLoading(true);
-  //   const resp = await fetch(`/api/topic/?topics=${topic}&page=${page}`)
-  //     .then((res) => res.json())
-  //     .catch((e) => console.log(e));
+  const userData: any = usePersonStore((state: any) => state.user);
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState<number>();
+  const [isLoading, setIsLoading] = useState(false);
 
-  //   setData(resp || []);
-  //   setTimeout(() => {
-  //     setIsLoading(false);
-  //   }, 500);
-  // };
-  // useEffect(() => {
-  //   getPostSave();
-  // }, []);
+  const getPostSave = async () => {
+    setIsLoading(true);
+    const resp = await fetch(`http://localhost:8080/user/get_articles`, {
+      method: "POST",
+      mode: "cors",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        memberId: userData.member.id,
+        type: "saved",
+        page: page,
+        size: 10,
+      }),
+    })
+      .then((res) => res.json())
+      .catch((e) => console.log(e));
+
+    setData(resp || []);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+  };
+  useEffect(() => {
+    getPostSave();
+  }, [page]);
+
+  const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
   return (
     <>
       <div className="block">
@@ -28,7 +50,33 @@ const ArticleSave: React.FC = () => {
             <h1 className="font-bold text-2xl">Bài viết đã lưu</h1>
           </div>
           <div>
-            <CardCustom topic="Thời sự" />
+            {isLoading ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  position: "relative",
+                  top: "50px",
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            ) : (
+              <>
+                <CardIndex data={data} />
+                <div className="block justify-end">
+                  <Pagination
+                    count={10}
+                    variant="outlined"
+                    shape="rounded"
+                    className="block justify-end"
+                    color="primary"
+                    page={page}
+                    onChange={handleChange}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ const defaultProps: TabCustomProps = {
 };
 const TabCustom: React.FC<TabCustomProps> = ({ w }) => {
   const router = useRouter();
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = React.useState(1);
 
   const handleChange = (
     event: React.SyntheticEvent | any,

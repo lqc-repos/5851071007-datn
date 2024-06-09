@@ -9,8 +9,10 @@ import Infomation from "./Infomation";
 import ArticleSave from "./ArticleSave";
 import ArticleSee from "./AricleSee";
 import CreatePost from "./CreatePost";
+import { usePersonStore } from "@/story";
 
 const NewPost: React.FC = () => {
+  const userData: any = usePersonStore((state: any) => state.user);
   const [value, setValue] = useState(0);
   const handleClick = (val: number) => {
     setValue(val);
@@ -21,8 +23,12 @@ const NewPost: React.FC = () => {
         <div className="justify-evenly flex-row flex">
           <div className="flex-auto block md:min-w-[328px] md:max-w-[328px]">
             <div className="border-solid border-[1px] border-[#bdbdbd] rounded-lg">
-              <div className="flex justify-center py-5">
+              <div className="flex items-center flex-col py-5">
                 <Avatar sx={{ width: 80, height: 80 }}>H</Avatar>
+                {userData?.role === "Admin" && <span>Quản trị</span>}
+                {userData?.role === "Author" && <span>Tác giả</span>}
+                {userData?.role === "Member" && <span>Thành viên</span>}
+                <span></span>
               </div>
               <Divider component="li" />
               <div>
@@ -39,6 +45,11 @@ const NewPost: React.FC = () => {
                   <MenuItem onClick={() => handleClick(3)}>
                     <ListItemText>Bài viết đã xem</ListItemText>
                   </MenuItem>
+                  {userData?.role !== "Member" && (
+                    <MenuItem onClick={() => handleClick(4)}>
+                      <ListItemText>Bài viết đã tạo</ListItemText>
+                    </MenuItem>
+                  )}
                 </MenuList>
               </div>
             </div>
@@ -52,7 +63,7 @@ const NewPost: React.FC = () => {
                     className="flex-col flex"
                     style={{ minHeight: "calc(-57px + 100vh)" }}
                   >
-                    <Infomation />
+                    <Infomation name={userData?.member?.fullName} />
                   </div>
                 )}
                 {value === 1 && (
@@ -77,6 +88,14 @@ const NewPost: React.FC = () => {
                     style={{ minHeight: "calc(-57px + 100vh)" }}
                   >
                     <ArticleSee />
+                  </div>
+                )}
+                {value === 4 && (
+                  <div
+                    className="flex-col flex"
+                    style={{ minHeight: "calc(-57px + 100vh)" }}
+                  >
+                    bài viết đã tạo
                   </div>
                 )}
               </div>

@@ -24,6 +24,7 @@ import thesis.core.news.role.repository.RoleRepository;
 import thesis.core.search_engine.dto.SearchEngineResult;
 import thesis.utils.constant.DEFAULT_ROLE;
 import thesis.utils.dto.ResponseDTO;
+import thesis.utils.mail.MailSender;
 
 import java.util.*;
 
@@ -40,6 +41,8 @@ public class AccountController {
     private ArticleRepository articleRepository;
     @Autowired
     private ArticleService articleService;
+    @Autowired
+    private MailSender mailSender;
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
 
@@ -241,6 +244,23 @@ public class AccountController {
                             .articles(articles)
                             .size(command.getSize())
                             .build())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/send-otp")
+    public ResponseEntity<ResponseDTO<?>> sendOtp() {
+        try {
+            mailSender.send("lqcuong96@gmail.com", "Hello world!", "Đây là mã OTP: 0011");
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(true)
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();

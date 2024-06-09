@@ -17,9 +17,9 @@ import {
 import React from "react";
 import PopoverCustom from "./Popover";
 import Notification from "./Notification";
-import { useRouter } from "next/navigation";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { usePersonStore } from "@/story";
 
 interface IFormInputs {
   email: string;
@@ -34,7 +34,8 @@ const schema = yup
   .required();
 
 const Login: React.FC = () => {
-  const router = useRouter();
+  const addUser: any = usePersonStore((state: any) => state.addUser);
+  const userData: any = usePersonStore((state: any) => state.user);
   const {
     handleSubmit,
     control,
@@ -47,7 +48,6 @@ const Login: React.FC = () => {
     resolver: yupResolver(schema),
   });
   const [open, setOpen] = React.useState(false);
-  const [isLogin, setIsLogin] = React.useState(false);
   const [openNoti, setOpenNoti] = React.useState(false);
   const [message, setMessage] = React.useState("");
   const [title, setTitle] = React.useState("Đăng nhập");
@@ -69,28 +69,48 @@ const Login: React.FC = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     if (title === "Đăng nhập") {
-      const resp = await fetch("http://localhost:8080/user/login", {
+      const resp: any = await fetch("http://localhost:8080/user/login", {
         method: "POST",
         mode: "cors",
         credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...data })
-      });
-      console.log(resp);
+        body: JSON.stringify({ ...data }),
+      })
+        .then((data) => data.json())
+        .catch((e) => console.log(e));
+      if (resp?.statusCode !== 200) {
+        setOpenNoti(true);
+        setMessage(resp?.message);
+        return;
+      }
+      addUser(resp.data);
+      setOpenNoti(true);
+      setMessage("Đăng nhập thành công");
+      handleClose();
     }
     if (title === "Đăng ký") {
-      const resp = await fetch("http://localhost:8080/user/registry", {
+      const resp: any = await fetch("http://localhost:8080/user/registry", {
         method: "POST",
         mode: "cors",
         credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...data })
-      });
-      console.log(resp);
+        body: JSON.stringify({ ...data }),
+      })
+        .then((data) => data.json())
+        .catch((e) => console.log(e));
+      if (resp?.statusCode !== 200) {
+        setOpenNoti(true);
+        setMessage(resp?.message);
+        return;
+      }
+      addUser(resp?.data);
+      setOpenNoti(true);
+      setMessage("Đăng ký thành công");
+      handleClose();
     }
   });
 
@@ -105,11 +125,11 @@ const Login: React.FC = () => {
         handleCloseNoti={handleCloseNoti}
         message={message}
       />
-      {isLogin ? (
+      {userData ? (
         <PopoverCustom />
       ) : (
         <Button variant="outlined" onClick={handleClickOpen}>
-          Login
+          Đăng nhập
         </Button>
       )}
       <Modal

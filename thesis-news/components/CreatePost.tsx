@@ -1,5 +1,12 @@
 import { Textarea } from "@mui/joy";
-import { TextField } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 
 interface IFormInput {
@@ -7,14 +14,16 @@ interface IFormInput {
   lable: string;
   description: string;
   content: string;
+  topic: string;
 }
 const CreatePost: React.FC = () => {
-  const { control, handleSubmit } = useForm({
+  const { control, handleSubmit } = useForm<IFormInput>({
     defaultValues: {
       title: "",
       lable: "",
       description: "",
-      content: ""
+      content: "",
+      topic: "",
     },
   });
   const onSubmit: SubmitHandler<IFormInput> = (data) => {
@@ -33,7 +42,7 @@ const CreatePost: React.FC = () => {
               control={control}
               render={({ field }) => (
                 <TextField
-                  label="Title"
+                  label="Tiêu đề"
                   variant="outlined"
                   className="w-full mb-5"
                   autoComplete="no"
@@ -46,7 +55,7 @@ const CreatePost: React.FC = () => {
               control={control}
               render={({ field }) => (
                 <TextField
-                  label="Lable"
+                  label="Từ khóa"
                   variant="outlined"
                   className="w-full mb-5"
                   autoComplete="no"
@@ -68,6 +77,40 @@ const CreatePost: React.FC = () => {
               )}
             />
             <Controller
+              name="topic"
+              control={control}
+              render={({ field }) => (
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">Chủ đề</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    className="w-full mb-5"
+                    label="Chủ đề"
+                    {...field}
+                  >
+                    <MenuItem value="thoi-su">Thời sự</MenuItem>
+                    <MenuItem value="goc-nhin">Góc nhìn</MenuItem>
+                    <MenuItem value="the-gioi">Thế giới</MenuItem>
+                    <MenuItem value="kinh-doanh">Kinh doanh</MenuItem>
+                    <MenuItem value="bat-dong-san">Bất động sản</MenuItem>
+                    <MenuItem value="khoa-hoc">Khoa học</MenuItem>
+                    <MenuItem value="giai-tri">Giải trí</MenuItem>
+                    <MenuItem value="the-thao">Thể thao</MenuItem>
+                    <MenuItem value="phap-luat">Pháp luật</MenuItem>
+                    <MenuItem value="giao-duc">Giáo dục</MenuItem>
+                    <MenuItem value="suc-khoe">Sức khỏe</MenuItem>
+                    <MenuItem value="doi-song">Đời sống</MenuItem>
+                    <MenuItem value="du-lich">Du lịch</MenuItem>
+                    <MenuItem value="so-hoa">Số hóa</MenuItem>
+                    <MenuItem value="xe">Xe</MenuItem>
+                    <MenuItem value="y-kien">Ý kiến</MenuItem>
+                    <MenuItem value="tam-su">Tâm sự</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+            />
+            <Controller
               name="content"
               control={control}
               render={({ field }) => (
@@ -79,6 +122,11 @@ const CreatePost: React.FC = () => {
                 />
               )}
             />
+          </div>
+          <div className="mt-5">
+            <Button className="felx items-end" variant="outlined">
+              Tạo bài viết
+            </Button>
           </div>
         </div>
       </div>
