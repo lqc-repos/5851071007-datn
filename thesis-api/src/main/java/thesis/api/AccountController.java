@@ -1,6 +1,7 @@
 package thesis.api;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import thesis.core.search_engine.dto.SearchEngineResult;
 import thesis.utils.constant.DEFAULT_ROLE;
 import thesis.utils.dto.ResponseDTO;
 import thesis.utils.mail.MailSender;
+import thesis.utils.otp.OtpCacheService;
 
 import java.util.*;
 
@@ -43,6 +45,8 @@ public class AccountController {
     private ArticleService articleService;
     @Autowired
     private MailSender mailSender;
+    @Autowired
+    private OtpCacheService otpCacheService;
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
 
@@ -256,12 +260,87 @@ public class AccountController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/send-otp")
-    public ResponseEntity<ResponseDTO<?>> sendOtp() {
+    public ResponseEntity<ResponseDTO<?>> sendOtp(@RequestBody CommandChangePassword command) {
         try {
-            mailSender.send("lqcuong96@gmail.com", "Hello world!", "Đây là mã OTP: 0011");
+            if (StringUtils.isBlank(command.getEmail()))
+                throw new Exception("Email không hợp lệ");
+            if (accountRepository.findOne(new Document("email", command.getEmail()), new Document()).isEmpty())
+                throw new Exception("Tài khoản không tồn tại");
+            long waitTime = otpCacheService.canResend(command.getEmail());
+            if (waitTime > 0) {
+                throw new Exception("Vui lòng gửi lại sau " + waitTime + "s");
+            }
+            String otp = otpCacheService.generateOTP(4);
+            try {
+                otpCacheService.storeOtp(command.getEmail(), otp);
+                mailSender.send(command.getEmail(), "Đổi mật khẩu", otp);
+            } catch (Exception ex) {
+                throw new Exception("Gửi otp thất bại, vui lòng thử lại");
+            }
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(true)
+                    .data(CommandOtpResponse.builder()
+                            .email(command.getEmail())
+                            .isSuccess(true)
+                            .message("Gửi otp thành công")
+                            .build())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/verify-otp")
+    public ResponseEntity<ResponseDTO<?>> verifyOtp(@RequestBody CommandChangePassword command) {
+        try {
+            if (StringUtils.isBlank(command.getEmail()))
+                throw new Exception("Email không hợp lệ");
+            if (accountRepository.findOne(new Document("email", command.getEmail()), new Document()).isEmpty())
+                throw new Exception("Tài khoản không tồn tại");
+            if (StringUtils.isBlank(command.getOtp()))
+                throw new Exception("Otp không hợp lệ");
+            if (!otpCacheService.validateOtp(command.getEmail(), command.getOtp()))
+                throw new Exception("Otp không hợp lệ");
+            otpCacheService.clearOtp(command.getEmail());
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(CommandOtpResponse.builder()
+                            .email(command.getEmail())
+                            .isSuccess(true)
+                            .message("Xác thực otp thành công")
+                            .build())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/reset-password")
+    public ResponseEntity<ResponseDTO<?>> resetPassword(@RequestBody CommandChangePassword command) {
+        try {
+            if (StringUtils.isBlank(command.getEmail()))
+                throw new Exception("Email không hợp lệ");
+            if (StringUtils.isBlank(command.getPassword()))
+                throw new Exception("Mật khẩu không hợp lệ");
+            Optional<Account> accountOptional = accountRepository.findOne(new Document("email", command.getEmail()), new Document());
+            if (accountOptional.isEmpty())
+                throw new Exception("Tài khoản không tồn tại");
+            accountRepository.update(new Document("_id", accountOptional.get().getId()), new Document("password", command.getPassword()));
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(CommandOtpResponse.builder()
+                            .email(command.getEmail())
+                            .isSuccess(true)
+                            .message("Đổi mật khẩu thành công")
+                            .build())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
