@@ -32,4 +32,9 @@ public class CrawlArticleController {
     public ResponseEntity<Boolean> crawlBySearch() {
         return new ResponseEntity<>(articleCrawlerService.crawlBySearch().orElse(Boolean.FALSE), HttpStatus.OK);
     }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/crawl-images")
+    public ResponseEntity<Boolean> crawlImages() {
+        return new ResponseEntity<>(articleCrawlerService.crawlImages().orElse(Boolean.FALSE), HttpStatus.OK);
+    }
 }

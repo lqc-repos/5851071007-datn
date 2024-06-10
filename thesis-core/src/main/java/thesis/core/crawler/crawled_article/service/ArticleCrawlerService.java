@@ -14,6 +14,8 @@ public interface ArticleCrawlerService {
     Optional<Long> crawlByTopic();
 
     Optional<Boolean> crawlBySearch();
+    
+    Optional<Boolean> crawlImages();
 
     default Elements find(Document document, String cssQuery) {
         return document.select(cssQuery);

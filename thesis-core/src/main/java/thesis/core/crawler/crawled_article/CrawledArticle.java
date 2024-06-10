@@ -26,4 +26,14 @@ public class CrawledArticle extends CommonDTO {
     private List<String> authors;
     private List<String> topics;
     private List<String> labels;
+    private List<Image> images;
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    @Builder
+    public static class Image {
+        private String url;
+        private String description;
+    }
 }

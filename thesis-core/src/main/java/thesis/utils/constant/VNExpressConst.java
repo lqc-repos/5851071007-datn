@@ -71,7 +71,9 @@ public class VNExpressConst {
         TOPIC("ul.breadcrumb > li > a"),
         LABEL("ul.breadcrumb > li > a"),
         HOT_LABEL(".li-title-topic a"),
-        TAG("meta[name=keywords]");
+        TAG("meta[name=keywords]"),
+        POSTER_URL(".fig-picture > picture"),
+        IMAGE_DESCRIPTION("p.Image");
         private final String value;
     }
 }

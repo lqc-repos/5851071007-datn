@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.core.crawler.crawled_article.command.CommandCrawlArticle;
+import thesis.core.crawler.crawled_article.command.CommandQueryCrawledArticle;
+import thesis.core.crawler.crawled_article.repository.CrawledArticleRepository;
 import thesis.core.crawler.crawled_article_error.CrawledArticleError;
 import thesis.core.crawler.crawled_article_error.service.CrawledArticleErrorService;
 import thesis.core.crawler.crawled_article_log.CrawledArticleLog;
@@ -22,6 +24,8 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -40,6 +44,8 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
     private CrawledArticleErrorService crawledArticleErrorService;
     @Autowired
     private CrawledArticleLogService crawledArticleLogService;
+    @Autowired
+    private CrawledArticleRepository crawledArticleRepository;
 
     @Override
     public List<CrawledArticle> crawl(CommandCrawlArticle command) {
@@ -119,6 +125,78 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
             fromDate = toDate.minusMonths(1);
         }
         return Optional.of(Boolean.TRUE);
+    }
+
+    @Override
+    public Optional<Boolean> crawlImages() {
+        ExecutorService executor = Executors.newFixedThreadPool(20);
+        Set<String> urls = new HashSet<>();
+        Long totalCrawledArticle = crawledArticleService.count(CommandQueryCrawledArticle.builder().build()).orElseThrow();
+        int sizePerPage = 100, totalPage = (int) ((totalCrawledArticle + sizePerPage - 1) / sizePerPage);
+        log.info("------ Total page: {}", totalPage);
+        for (int i = 0; i < totalPage; i++) {
+            int finalI = i;
+            CompletableFuture.runAsync(() -> {
+                List<CrawledArticle> crawledArticles = crawledArticleService.getMany(CommandQueryCrawledArticle.builder()
+                        .isDescPublicationDate(false)
+                        .page(finalI)
+                        .size(sizePerPage)
+                        .build());
+                log.info("-----Start Page: {} - Size: {}", finalI, crawledArticles.size());
+                for (CrawledArticle crawledArticle : crawledArticles) {
+                    if (urls.contains(crawledArticle.getUrl()))
+                        continue;
+                    if (CollectionUtils.isNotEmpty(crawledArticle.getImages()))
+                        continue;
+                    try {
+                        String url = crawledArticle.getUrl();
+                        Document document = Jsoup.connect(url).get();
+
+                        LinkedList<CrawledArticle.Image> images = new LinkedList<>();
+
+                        LinkedList<String> imageDescriptions = new LinkedList<>();
+                        for (Element imageElement : find(document, VNExpressConst.CSS_QUERY.IMAGE_DESCRIPTION.getValue())) {
+                            if (imageElement != null) {
+                                imageDescriptions.add(imageElement.text());
+                            } else {
+                                System.out.println("No image description element found");
+                            }
+                        }
+                        int count = 0;
+                        for (Element imageElement : find(document, VNExpressConst.CSS_QUERY.POSTER_URL.getValue())) {
+                            if (imageElement != null) {
+                                Element source = imageElement.selectFirst("source[data-srcset]");
+                                if (source != null) {
+                                    String dataSrcset = source.attr("data-srcset");
+                                    String[] imgUrls = dataSrcset.split(", ");
+                                    for (String imgUrl : imgUrls) {
+                                        String[] parts = imgUrl.split(" ");
+                                        if (parts.length == 2 && parts[1].equals("1x")) {
+                                            String imageUrl = parts[0];
+                                            images.add(CrawledArticle.Image.builder()
+                                                    .url(imageUrl)
+                                                    .description(imageDescriptions.get(count++))
+                                                    .build());
+                                        }
+                                    }
+                                } else {
+                                    System.out.println("No source element with data-srcset attribute found");
+                                }
+                            } else {
+                                System.out.println("No picture element found");
+                            }
+                        }
+                        if (CollectionUtils.isNotEmpty(images))
+                            crawledArticleRepository.update(new org.bson.Document("_id", crawledArticle.getId()), new org.bson.Document("images", images));
+                    } catch (Exception ex) {
+                        log.warn("Cannot get article url: {}, reason: {}", crawledArticle.getUrl(), ex.getMessage());
+                    }
+                    urls.add(crawledArticle.getUrl());
+                }
+                log.info("-----End Page: {} - Size: {}", finalI, crawledArticles.size());
+            }, executor);
+        }
+        return Optional.of(true);
     }
 
     private CrawledArticle crawl(String url) {
