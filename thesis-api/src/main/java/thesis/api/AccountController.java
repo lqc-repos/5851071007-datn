@@ -133,6 +133,7 @@ public class AccountController {
                     .content(command.getContent())
                     .description(command.getDescription())
                     .labels(CollectionUtils.isNotEmpty(command.getLabels()) ? command.getLabels() : new ArrayList<>())
+                    .images(command.getImages())
                     .build();
             articleService.add(article);
 
