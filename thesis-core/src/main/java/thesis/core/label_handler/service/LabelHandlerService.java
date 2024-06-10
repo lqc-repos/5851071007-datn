@@ -5,6 +5,8 @@ import java.util.Optional;
 public interface LabelHandlerService {
     Optional<Boolean> migrateArticle();
 
+    Optional<Boolean> migrateImages();
+
     Optional<Boolean> storeFrequency();
 
     Optional<Boolean> divideArticleComponent();

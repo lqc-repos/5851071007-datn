@@ -3,6 +3,7 @@ package thesis.core.label_handler.service;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import thesis.core.article.Article;
@@ -23,6 +24,7 @@ import thesis.core.article.model.location.Location;
 import thesis.core.article.model.location.service.LocationService;
 import thesis.core.article.model.topic.Topic;
 import thesis.core.article.model.topic.service.TopicService;
+import thesis.core.article.repository.ArticleRepository;
 import thesis.core.article.service.ArticleService;
 import thesis.core.configuration.service.ThesisConfigurationService;
 import thesis.core.crawler.crawled_article.CrawledArticle;
@@ -58,6 +60,8 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
     private TotalLabelFrequencyService totalLabelFrequencyService;
     @Autowired
     private ArticleService articleService;
+    @Autowired
+    private ArticleRepository articleRepository;
     @Autowired
     private NLPService nlpService;
     @Autowired
@@ -108,6 +112,24 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             if (CollectionUtils.isNotEmpty(articles))
                 articleService.addMany(articles);
             urls.addAll(articles.stream().map(Article::getUrl).toList());
+        }
+        return Optional.of(Boolean.TRUE);
+    }
+
+    @Override
+    public Optional<Boolean> migrateImages() {
+        Long totalCrawledArticle = crawledArticleService.count(CommandQueryCrawledArticle.builder().build()).orElseThrow();
+        int sizePerPage = 50, totalPage = (int) ((totalCrawledArticle + sizePerPage - 1) / sizePerPage);
+        for (int i = 0; i < totalPage; i++) {
+            List<CrawledArticle> crawledArticles = crawledArticleService.getMany(CommandQueryCrawledArticle.builder()
+                    .isDescPublicationDate(false)
+                    .page(i)
+                    .size(sizePerPage)
+                    .build());
+            for (CrawledArticle crawledArticle : crawledArticles) {
+                if (CollectionUtils.isNotEmpty(crawledArticle.getImages()))
+                    articleRepository.update(new Document("url", crawledArticle.getUrl()), new Document("images", crawledArticle.getImages()));
+            }
         }
         return Optional.of(Boolean.TRUE);
     }

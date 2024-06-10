@@ -31,6 +31,22 @@ public class LabelFrequencyController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/migrate_images")
+    public ResponseEntity<ResponseDTO<?>> migrateImages() {
+        try {
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(labelHandlerService.migrateImages())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/storage_frequency")
     public ResponseEntity<ResponseDTO<?>> storageFrequency() {
         try {
