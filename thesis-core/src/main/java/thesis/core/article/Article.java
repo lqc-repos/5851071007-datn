@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 import org.bson.types.ObjectId;
+import thesis.core.crawler.crawled_article.CrawledArticle;
 import thesis.utils.dto.CommonDTO;
 
 import java.util.List;
@@ -26,4 +27,14 @@ public class Article extends CommonDTO {
     private List<String> authors;
     private List<String> topics;
     private List<String> labels;
+    private List<CrawledArticle.Image> images;
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    @Builder
+    public static class Image {
+        private String url;
+        private String description;
+    }
 }
