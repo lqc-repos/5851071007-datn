@@ -25,6 +25,7 @@ import thesis.core.news.role.repository.RoleRepository;
 import thesis.core.search_engine.dto.SearchEngineResult;
 import thesis.utils.constant.DEFAULT_ROLE;
 import thesis.utils.dto.ResponseDTO;
+import thesis.utils.helper.PasswordHelper;
 import thesis.utils.mail.MailSender;
 import thesis.utils.otp.OtpCacheService;
 
@@ -49,12 +50,11 @@ public class AccountController {
     private OtpCacheService otpCacheService;
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
-
     public ResponseEntity<ResponseDTO<?>> login(@RequestBody CommandLogin command) {
         try {
             Account account = accountRepository.findOne(new Document("email", command.getEmail()), new Document())
                     .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
-            if (!account.getPassword().equals(command.getPassword()))
+            if (!PasswordHelper.checkPassword(command.getPassword(), account.getPassword()))
                 throw new Exception("Mật khẩu không đúng");
 
             Member member = memberRepository.findOne(new Document("_id", new ObjectId(account.getMemberId())), new Document())
@@ -333,7 +333,7 @@ public class AccountController {
             Optional<Account> accountOptional = accountRepository.findOne(new Document("email", command.getEmail()), new Document());
             if (accountOptional.isEmpty())
                 throw new Exception("Tài khoản không tồn tại");
-            accountRepository.update(new Document("_id", accountOptional.get().getId()), new Document("password", command.getPassword()));
+            accountRepository.update(new Document("_id", accountOptional.get().getId()), new Document("password", PasswordHelper.hashPassword(command.getPassword())));
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
                     .data(CommandOtpResponse.builder()
