@@ -25,9 +25,9 @@ const NewPost: React.FC = () => {
             <div className="border-solid border-[1px] border-[#bdbdbd] rounded-lg">
               <div className="flex items-center flex-col py-5">
                 <Avatar sx={{ width: 80, height: 80 }}>H</Avatar>
-                {userData?.role === "Admin" && <span>Quản trị</span>}
-                {userData?.role === "Author" && <span>Tác giả</span>}
-                {userData?.role === "Member" && <span>Thành viên</span>}
+                {userData?.role?.role === "Admin" && <span>Quản trị</span>}
+                {userData?.role?.role === "Author" && <span>Tác giả</span>}
+                {userData?.role?.role === "Member" && <span>Thành viên</span>}
                 <span></span>
               </div>
               <Divider component="li" />
@@ -45,7 +45,7 @@ const NewPost: React.FC = () => {
                   <MenuItem onClick={() => handleClick(3)}>
                     <ListItemText>Bài viết đã xem</ListItemText>
                   </MenuItem>
-                  {userData?.role !== "Member" && (
+                  {userData?.role?.role !== "Member" && (
                     <MenuItem onClick={() => handleClick(4)}>
                       <ListItemText>Bài viết đã tạo</ListItemText>
                     </MenuItem>
@@ -63,7 +63,10 @@ const NewPost: React.FC = () => {
                     className="flex-col flex"
                     style={{ minHeight: "calc(-57px + 100vh)" }}
                   >
-                    <Infomation name={userData?.member?.fullName} />
+                    <Infomation
+                      name={userData?.member?.fullName}
+                      email={userData?.account?.email}
+                    />
                   </div>
                 )}
                 {value === 1 && (

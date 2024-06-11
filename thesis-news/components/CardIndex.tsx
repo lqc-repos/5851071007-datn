@@ -23,7 +23,7 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
           >
             {data.length > 0 &&
               data.map((el: any) => (
-                <article key={el._id || Math.floor(Math.random() * 1000)}>
+                <article key={el.id || Math.floor(Math.random() * 1000)}>
                   <div className="box-content mr-auto ml-auto block">
                     <div className="justify-center flex ">
                       <div
@@ -35,7 +35,7 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                           <div className="block">
                             <div className="flex items-center">
                               <div>
-                                <Link href={`/article/${el._id}`}>
+                                <Link href={`/article/${el.id}`}>
                                   <div>
                                     <Chip
                                       label={el.topics[0] || ""}
@@ -61,7 +61,9 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                   ) ? (
                                     <BookmarkIcon />
                                   ) : (
-                                    <BookmarkBorderIcon />
+                                    <>
+                                      {!userData ? "" : <BookmarkBorderIcon />}
+                                    </>
                                   )}
                                 </div>
                               </div>
@@ -77,7 +79,7 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                           style={{ wordBreak: "break-word" }}
                                         >
                                           <div className="block">
-                                            <Link href={`/article/${el._id}`}>
+                                            <Link href={`/article/${el.id}`}>
                                               <div className="lg:mb-2 block cursor-pointer font-bold tracking-tight text-base lg:max-h-[72px] leading-6 overflow-hidden gd ge gg">
                                                 {el.title}
                                               </div>
@@ -90,10 +92,15 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                           </div>
                                         </div>
                                         <div className="lg:ml-14 block ">
-                                          <Link href={`/article/${el._id}`}>
+                                          <Link href={`/article/${el.id}`}>
                                             <Image
                                               alt="image"
-                                              src="/0_e8IMSJf7p60mk-WG.png"
+                                              src={
+                                                el.images &&
+                                                el.images.length > 0
+                                                  ? el?.images[0].url
+                                                  : "/No_Image_Available.jpg"
+                                              }
                                               width={112}
                                               height={112}
                                             />

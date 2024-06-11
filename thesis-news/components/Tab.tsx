@@ -1,5 +1,5 @@
 "use client";
-import { Box, Pagination, Tab, Tabs } from "@mui/material";
+import { Box, Tab, Tabs } from "@mui/material";
 import React from "react";
 import CardCustom from "./Card";
 import Search from "./Search";

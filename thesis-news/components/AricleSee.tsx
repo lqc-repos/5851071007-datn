@@ -9,6 +9,8 @@ const ArticleSee: React.FC = () => {
   const [page, setPage] = useState<number>();
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalData, setTotalData] = useState(1);
+
   const getPostSee = async () => {
     setIsLoading(true);
     const resp = await fetch(`http://localhost:8080/user/get_articles`, {
@@ -28,7 +30,8 @@ const ArticleSee: React.FC = () => {
       .then((res) => res.json())
       .catch((e) => console.log(e));
 
-    setData(resp || []);
+    setData(resp?.data?.articles || []);
+    setTotalData(resp?.data?.totalPage || 1);
     setTimeout(() => {
       setIsLoading(false);
     }, 500);
@@ -65,7 +68,7 @@ const ArticleSee: React.FC = () => {
                 <CardIndex data={data} />
                 <div className="block justify-end">
                   <Pagination
-                    count={10}
+                    count={totalData}
                     variant="outlined"
                     shape="rounded"
                     className="block justify-end"

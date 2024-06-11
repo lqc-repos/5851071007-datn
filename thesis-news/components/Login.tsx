@@ -14,12 +14,14 @@ import {
   OutlinedInput,
   TextField,
 } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
 import PopoverCustom from "./Popover";
 import Notification from "./Notification";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { usePersonStore } from "@/story";
+import ForgetPassword from "./ForgetPassword";
+import NewPassword from "./NewPassword";
 
 interface IFormInputs {
   email: string;
@@ -52,6 +54,8 @@ const Login: React.FC = () => {
   const [message, setMessage] = React.useState("");
   const [title, setTitle] = React.useState("Đăng nhập");
   const [showPassword, setShowPassword] = React.useState(false);
+  const [step, setStep] = useState(0);
+  const [emailNewPassword, setEmailNewPassword] = useState("");
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -59,6 +63,8 @@ const Login: React.FC = () => {
 
   const handleClose = () => {
     setOpen(false);
+    setTitle("Đăng nhập");
+    setStep(0);
   };
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -118,6 +124,22 @@ const Login: React.FC = () => {
     setOpenNoti(false);
     setMessage("");
   };
+
+  const handleForgetPassword = async () => {
+    setStep(1);
+    setTitle("Quên mật khẩu");
+  };
+
+  const handleChangeNewPassword = (e: string) => {
+    setStep(2);
+    setTitle("Thay đổi mật khẩu");
+    setEmailNewPassword(e);
+  };
+
+  const handleBack = () => {
+    setStep(0);
+    setTitle("Đăng nhập");
+  };
   return (
     <div>
       <Notification
@@ -140,69 +162,98 @@ const Login: React.FC = () => {
       >
         <Box sx={STYLE_LOGIN}>
           <h1 className="mb-10 text-center text-3xl font-medium">{title}</h1>
-          <Controller
-            name="email"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                label="Email"
-                variant="outlined"
-                className="w-full"
-                autoComplete="no"
-                {...field}
+          {step === 1 && (
+            <ForgetPassword
+              handleChangeNewPassword={(e: string) => handleChangeNewPassword(e)}
+              setOpenNoti={(e: boolean) => setOpenNoti(e)}
+              setMessage={(e: string) => setMessage(e)}
+            />
+          )}
+          {step === 2 && (
+            <NewPassword
+              handleBack={handleBack}
+              setOpenNoti={(e: boolean) => setOpenNoti(e)}
+              setMessage={(e: string) => setMessage(e)}
+              emailNewPassword={emailNewPassword}
+            />
+          )}
+          {step === 0 && (
+            <>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    label="Email"
+                    variant="outlined"
+                    className="w-full"
+                    autoComplete="no"
+                    {...field}
+                  />
+                )}
               />
-            )}
-          />
-          <p className="text-[red]">{errors.email?.message}</p>
-          <Controller
-            name="password"
-            control={control}
-            render={({ field }) => (
-              <FormControl className="w-full mt-6" variant="outlined">
-                <InputLabel htmlFor="outlined-adornment-password">
-                  Password
-                </InputLabel>
-                <OutlinedInput
-                  id="outlined-adornment-password"
-                  type={showPassword ? "text" : "password"}
-                  endAdornment={
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  }
-                  label="Password"
-                  {...field}
-                />
-              </FormControl>
-            )}
-          />
-          <p className="text-[red]">{errors.email?.message}</p>
-          <div className="mt-5 w-full">
-            <Button
-              variant="contained"
-              className="w-full capitalize"
-              onClick={onSubmit}
-            >
-              {title}
-            </Button>
-            <div className="mt-3">
-              <span className="mr-2">Don't have an account?</span>
-              <a
-                className="text-[#1976d2] decoration-1 cursor-pointer underline"
-                onClick={() =>
-                  handleTitle(title === "Đăng nhập" ? "Đăng ký" : "Đăng nhập")
-                }
-              >
-                {title === "Đăng nhập" ? "Đăng ký" : "Đăng nhập"}
-              </a>
-            </div>
-          </div>
+              <p className="text-[red]">{errors.email?.message}</p>
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => (
+                  <FormControl className="w-full mt-6" variant="outlined">
+                    <InputLabel htmlFor="outlined-adornment-password">
+                      Password
+                    </InputLabel>
+                    <OutlinedInput
+                      id="outlined-adornment-password"
+                      type={showPassword ? "text" : "password"}
+                      endAdornment={
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={handleClickShowPassword}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      }
+                      label="Password"
+                      {...field}
+                    />
+                  </FormControl>
+                )}
+              />
+              <p className="text-[red]">{errors.email?.message}</p>
+              <div className="mt-5 w-full">
+                <Button
+                  variant="contained"
+                  className="w-full capitalize"
+                  onClick={onSubmit}
+                >
+                  {title}
+                </Button>
+                <div className="mt-3 flex justify-between">
+                  <div>
+                    <span className="mr-2">Nếu chưa có tài khoản?</span>
+                    <a
+                      className="text-[#1976d2] decoration-1 cursor-pointer underline"
+                      onClick={() =>
+                        handleTitle(
+                          title === "Đăng nhập" ? "Đăng ký" : "Đăng nhập"
+                        )
+                      }
+                    >
+                      {title === "Đăng nhập" ? "Đăng ký" : "Đăng nhập"}
+                    </a>
+                  </div>
+                  <div
+                    className="text-[#1976d2] decoration-1 cursor-pointer"
+                    onClick={handleForgetPassword}
+                  >
+                    Quên mật khẩu
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </Box>
       </Modal>
     </div>

@@ -54,7 +54,7 @@ const DetailArticle: React.FC = () => {
               </div>
             </div>
           </div>
-          <ContentPost data={data.content} />
+          <ContentPost data={data.content} images={data.images} />
         </div>
       </div>
     </>

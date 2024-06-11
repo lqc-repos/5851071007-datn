@@ -8,11 +8,11 @@ export default function Home() {
     <div className="block">
       <Header />
       <div className="max-w-[1336px] m-auto block">
-        <div className="justify-evenly flex-row flex my-3">
+        {/* <div className="justify-evenly flex-row flex my-3">
           <div className="flex-auto flex md:min-w-[1024px] md:max-w-[1024px]">
             <DateCustom />
           </div>
-        </div>
+        </div> */}
         <div className="justify-evenly flex-row flex">
           <div className="flex-auto block md:min-w-[728px] md:max-w-[728px]">
             <TabCustom w="inherit" />

@@ -10,6 +10,7 @@ const ArticleSave: React.FC = () => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState<number>();
   const [isLoading, setIsLoading] = useState(false);
+  const [totalData, setTotalData] = useState(1);
 
   const getPostSave = async () => {
     setIsLoading(true);
@@ -30,7 +31,9 @@ const ArticleSave: React.FC = () => {
       .then((res) => res.json())
       .catch((e) => console.log(e));
 
-    setData(resp || []);
+    setData(resp?.data?.articles || []);
+    setTotalData(resp?.data?.totalPage || 1);
+
     setTimeout(() => {
       setIsLoading(false);
     }, 500);
@@ -66,7 +69,7 @@ const ArticleSave: React.FC = () => {
                 <CardIndex data={data} />
                 <div className="block justify-end">
                   <Pagination
-                    count={10}
+                    count={totalData}
                     variant="outlined"
                     shape="rounded"
                     className="block justify-end"

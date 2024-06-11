@@ -1,7 +1,7 @@
 import EditIcon from "@mui/icons-material/Edit";
 import { Divider } from "@mui/joy";
 
-const Infomation: React.FC<{ name: string }> = ({ name }) => {
+const Infomation: React.FC<{ name: string, email: string }> = ({ name, email }) => {
   return (
     <>
       <div className="block">
@@ -10,18 +10,21 @@ const Infomation: React.FC<{ name: string }> = ({ name }) => {
             <h1 className="font-bold text-2xl">Thông tin tài khoản</h1>
           </div>
           {name && (
-            <div className="flex flex-col">
-              <div className="flex justify-between">
-                <label className="font-semibold pb-2">Tên: </label>
+            <>
+              <div className="flex flex-col">
+                <div className="flex justify-between">
+                  <label className="font-semibold pb-2">Tên: </label>
+                </div>
+                <span>{name || ""}</span>
               </div>
-              <span>{name || ""}</span>
-            </div>
+              <Divider component="li" className="my-4" />
+            </>
           )}
           <div className="flex flex-col">
             <div className="flex justify-between">
               <label className="font-semibold pb-2">Email: </label>
             </div>
-            <span>tvietnguyen1997@gmail.com</span>
+            <span>{email}</span>
           </div>
           <Divider component="li" className="my-4" />
           <div className="flex flex-col">

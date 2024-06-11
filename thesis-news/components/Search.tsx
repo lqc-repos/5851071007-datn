@@ -18,6 +18,7 @@ const Search: React.FC = () => {
   const [value, setValue] = useState<any>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalData, setTotalData] = useState(1);
 
   const getData = async (value: any) => {
     const dataSearch = {
@@ -37,7 +38,8 @@ const Search: React.FC = () => {
       .then((res) => res.json())
       .catch((e) => console.log(e));
 
-    setData(resp || []);
+    setData(resp?.data?.articles || []);
+    setTotalData(resp?.data?.totalPage || 1);
     setIsLoading(false);
   };
   const onSubmit = handleSubmit((data) => {
@@ -106,7 +108,7 @@ const Search: React.FC = () => {
           {data.length > 0 && (
             <div className="block justify-end">
               <Pagination
-                count={10}
+                count={totalData}
                 variant="outlined"
                 shape="rounded"
                 className="block justify-end"
