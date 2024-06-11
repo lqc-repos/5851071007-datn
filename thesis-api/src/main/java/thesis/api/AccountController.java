@@ -189,17 +189,26 @@ public class AccountController {
                     member.getSavedArticles().add(article.getId().toHexString());
                 }
                 case "unsave" -> {
-                    if(!member.getSavedArticles().remove(article.getId().toHexString()))
+                    if (!member.getSavedArticles().remove(article.getId().toHexString()))
                         throw new Exception("Không thể gỡ bài viết hoặc bài viết không tồn tại trong danh sách đã lưu");
                 }
             }
 
+            Account account = accountRepository.findOne(new Document("memberId", member.getId().toHexString()), new Document())
+                    .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
+
+            Role role = roleRepository.findOne(new Document("_id", new ObjectId(member.getRoleId())), new Document())
+                    .orElseThrow(() -> new Exception("Quyền người dùng không tồn tại"));
 
             memberRepository.update(new Document("_id", member.getId()), new Document("savedArticles", member.getSavedArticles()));
 
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(AccountResponse.builder().member(member).build())
+                    .data(AccountResponse.builder()
+                            .account(account)
+                            .member(member)
+                            .role(role)
+                            .build())
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
