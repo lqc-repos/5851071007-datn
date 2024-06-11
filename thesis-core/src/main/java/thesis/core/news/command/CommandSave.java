@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class CommandSave {
     private String memberId;
     private String articleId;
+    private String type;
 }

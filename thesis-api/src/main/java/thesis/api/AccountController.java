@@ -184,7 +184,16 @@ public class AccountController {
 
             if (CollectionUtils.isEmpty(member.getSavedArticles()))
                 member.setSavedArticles(new ArrayList<>());
-            member.getSavedArticles().add(article.getId().toHexString());
+            switch (command.getType()) {
+                case "save" -> {
+                    member.getSavedArticles().add(article.getId().toHexString());
+                }
+                case "unsave" -> {
+                    if(!member.getSavedArticles().remove(article.getId().toHexString()))
+                        throw new Exception("Không thể gỡ bài viết hoặc bài viết không tồn tại trong danh sách đã lưu");
+                }
+            }
+
 
             memberRepository.update(new Document("_id", member.getId()), new Document("savedArticles", member.getSavedArticles()));
 
