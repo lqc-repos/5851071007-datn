@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   Breadcrumbs,
   IconButton,
@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import Link from "next/link";
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
+import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import { MenuItemProps } from "@/types/newpost";
 import { useMemo } from "react";
 import { MenuTypes, Menus } from "@/constant";
@@ -60,17 +60,9 @@ export default function AppBarAdmin({
     return result;
   }, [Menus]);
 
-  if (!convertMenus.length) return <></>;
-
-//   const routerParent = convertMenus.find(
-//     (m) => router?.pathname?.search(m.path) > -1
-//   );
-//   const routerChild = routerParent
-//     ? (routerParent?.childrens || []).find((m) => router?.pathname === m.path)
-//     : null;
-
-//   if (!routerParent) return <></>;
-//   const { Icon } = routerParent;
+  if (!convertMenus.length) {
+    return <></>;
+  }
 
   return (
     <AppBar

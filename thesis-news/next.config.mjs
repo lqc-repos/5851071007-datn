@@ -4,7 +4,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "i1-vnexpress.vnecdn.net",
+        hostname: "**",
         port: "",
         pathname: "/**",
       },

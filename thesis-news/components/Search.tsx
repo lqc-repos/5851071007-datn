@@ -54,7 +54,7 @@ const Search: React.FC = () => {
     getData(value);
   };
   return (
-    <>
+    <div>
       <Paper
         component="form"
         sx={{
@@ -120,7 +120,7 @@ const Search: React.FC = () => {
           )}
         </>
       )}
-    </>
+    </div>
   );
 };
 

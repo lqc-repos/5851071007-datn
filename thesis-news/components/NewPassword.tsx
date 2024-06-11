@@ -12,6 +12,10 @@ import * as yup from "yup";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import React from "react";
 
+interface IFormInputs {
+  password: string;
+}
+
 const schema = yup
   .object({
     password: yup.string().required("Trường bắt buộc, vui long nhập"),
@@ -28,9 +32,7 @@ const NewPassword: React.FC<{
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<{
-    password: string;
-  }>({
+  } = useForm<IFormInputs>({
     defaultValues: {
       password: "",
     },
@@ -38,7 +40,7 @@ const NewPassword: React.FC<{
   });
   const [showPassword, setShowPassword] = React.useState(false);
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = async (data: IFormInputs) => {
     const resp = await fetch("http://localhost:8080/user/reset-password", {
       method: "POST",
       mode: "cors",
@@ -62,12 +64,12 @@ const NewPassword: React.FC<{
     setOpenNoti(true);
     setMessage(resp?.message || resp?.data?.message);
     handleBack();
-  });
+  };
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div>
         <Controller
           name="password"
@@ -103,12 +105,13 @@ const NewPassword: React.FC<{
         <Button
           variant="contained"
           className="w-full capitalize"
-          onClick={onSubmit}
+          // onClick={onSubmit}
+          type="submit"
         >
           Xác nhận
         </Button>
       </div>
-    </>
+    </form>
   );
 };
 

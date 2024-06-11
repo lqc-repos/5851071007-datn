@@ -3,7 +3,7 @@ import { Divider } from "@mui/joy";
 
 const Infomation: React.FC<{ name: string, email: string }> = ({ name, email }) => {
   return (
-    <>
+    <div>
       <div className="block">
         <div className="flex flex-col">
           <div className="mb-4">
@@ -39,7 +39,7 @@ const Infomation: React.FC<{ name: string, email: string }> = ({ name, email }) 
           <Divider component="li" className="my-4" />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

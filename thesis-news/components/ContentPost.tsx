@@ -1,26 +1,33 @@
 "use client";
 
-import { getRandomInt } from "@/lib/format";
 import DOMPurify from "dompurify";
 
-const ContentPost: React.FC<{ data: string; images: [] }> = ({
+const ContentPost: React.FC<{ data: string; images: any }> = ({
   data,
   images,
 }) => {
   const dataFormat = data.split("\n");
-  let indexRandom: any;
-  if (images && images?.length > 0) {
-    indexRandom = images.map(() => getRandomInt(dataFormat.length));
-  }
 
-  if (indexRandom?.length > 0) {
-    indexRandom?.map((el: any) =>
-      dataFormat.splice(
-        el,
-        0,
-        `<img alt="image" src="https://i1-vnexpress.vnecdn.net/2022/01/24/GS-Nong-Van-Hai-6357-1642958872.jpg?w=680&h=0&q=100&dpr=1&fit=crop&s=B2yTyXRzXLHiAsAZFCW03Q" />`
-      )
-    );
+  // Chỉ số cho hình ảnh
+  let imageIndex = 0;
+
+  // Chèn hình ảnh và mô tả vào vị trí sao cho mỗi hình cách nhau ít nhất 1 content
+  if (images) {
+    for (
+      let i = 1;
+      i < dataFormat.length && imageIndex < images?.length;
+      i += 2
+    ) {
+      const imageElement = `
+        <div style="text-align: center;">
+          <img alt=""image"" src=${images[imageIndex]?.url || ""} />
+          <p style="margin-bottom: 5px;"><em>${
+            images[imageIndex]?.description || ""
+          }</em></p>
+        </div>`;
+      dataFormat.splice(i, 0, imageElement);
+      imageIndex++;
+    }
   }
 
   const rawHTML = `${dataFormat.join('<p class="mb-3" />')}`;

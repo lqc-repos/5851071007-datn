@@ -5,20 +5,84 @@ import Image from "next/image";
 import Link from "next/link";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
-import { usePersonStore } from "@/story";
+import { useEffect, useState } from "react";
+import Notification from "./Notification";
 
-const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
-  data,
-  isStyle = false,
-}) => {
-  const userData: any = usePersonStore((state: any) => state.user);
+const CardIndex: React.FC<{
+  data: [] | never[];
+  isStyle?: boolean;
+}> = ({ data, isStyle = false }) => {
+  const [dataCookie, setDataCookie] = useState<null | any>(null);
+  const [openNoti, setOpenNoti] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isDataCookie, setIsDataCookie] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userStorate = localStorage.getItem("user");
+      if (userStorate) {
+        try {
+          setDataCookie(JSON.parse(userStorate));
+        } catch (error) {
+          console.error(
+            "Lỗi khi phân tích dữ liệu JSON từ localStorage:",
+            error
+          );
+          setDataCookie(null);
+        }
+      }
+    }
+  }, [isDataCookie]);
+
+  const handleBookmask = async (id: string, type: string) => {
+    const memberId = JSON.parse(localStorage.getItem("user") as any);
+    const resp = await fetch("http://localhost:8080/user/save", {
+      method: "POST",
+      mode: "cors",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        articleId: id,
+        memberId: memberId?.member?.id,
+        type: type,
+      }),
+    })
+      .then((result) => result.json())
+      .catch((e) => console.log(e));
+
+    if (resp.statusCode !== 200) {
+      setOpenNoti(true);
+      setMessage(resp?.message || resp?.data?.message);
+    }
+
+    if (resp.statusCode === 200) {
+      setOpenNoti(true);
+      setMessage(resp?.message || resp?.data?.message);
+      localStorage.setItem("user", JSON.stringify(resp?.data));
+      setIsDataCookie(!isDataCookie);
+    }
+  };
+
+  const handleCloseNoti = () => {
+    setOpenNoti(false);
+    setMessage("");
+  };
+
   return (
     <>
+      <Notification
+        open={openNoti}
+        handleCloseNoti={handleCloseNoti}
+        message={message}
+      />
       <div className={`${isStyle ? "" : "pt-8"} block`}>
         <div>
           <div
-            className={`max-h-[82vh] ${isStyle ? "scroll-visible !pl-0" : "scroll-visible"
-              }`}
+            className={`max-h-[82vh] ${
+              isStyle ? "scroll-visible !pl-0" : "scroll-visible"
+            }`}
           >
             {data.length > 0 &&
               data.map((el: any) => (
@@ -26,8 +90,9 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                   <div className="box-content mr-auto ml-auto block">
                     <div className="justify-center flex ">
                       <div
-                        className={`lg:max-w-[680px] mx-6 min-w-0 w-full ${isStyle ? "ml-0" : ""
-                          }`}
+                        className={`lg:max-w-[680px] mx-6 min-w-0 w-full ${
+                          isStyle ? "ml-0" : ""
+                        }`}
                       >
                         <div className="w-full h-full">
                           <div className="block">
@@ -36,7 +101,7 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                 <Link href={`/article/${el.id}`}>
                                   <div>
                                     <Chip
-                                      label={el.topics && el.topics[0] || ""}
+                                      label={(el.topics && el.topics[0]) || ""}
                                       className="bg-[#f17b7b] text-white"
                                     />
                                   </div>
@@ -52,15 +117,28 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                   )}
                                 </div>
                                 <div className="cursor-pointer">
-                                  {userData &&
-                                    userData?.member?.savedArticles.length > 0 &&
-                                    userData?.member?.savedArticles.includes(
-                                      el.id
-                                    ) ? (
-                                    <BookmarkIcon />
+                                  {dataCookie &&
+                                  dataCookie?.member?.savedArticles?.length >
+                                    0 &&
+                                  dataCookie?.member?.savedArticles?.includes(
+                                    el.id
+                                  ) ? (
+                                    <BookmarkIcon
+                                      onClick={() =>
+                                        handleBookmask(el.id, "unsave")
+                                      }
+                                    />
                                   ) : (
                                     <>
-                                      {!userData ? "" : <BookmarkBorderIcon />}
+                                      {!dataCookie ? (
+                                        ""
+                                      ) : (
+                                        <BookmarkBorderIcon
+                                          onClick={() =>
+                                            handleBookmask(el.id, "save")
+                                          }
+                                        />
+                                      )}
                                     </>
                                   )}
                                 </div>
@@ -95,7 +173,7 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                               alt="image"
                                               src={
                                                 el.images &&
-                                                  el.images.length > 0
+                                                el.images.length > 0
                                                   ? el?.images[0].url
                                                   : "/No_Image_Available.jpg"
                                               }

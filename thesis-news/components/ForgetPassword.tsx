@@ -2,12 +2,17 @@ import { Button, TextField } from "@mui/material";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
+interface IFormInputs {
+  email: string;
+  otp: string;
+}
+
 const ForgetPassword: React.FC<{
   handleChangeNewPassword: (e: string) => void;
   setOpenNoti: (e: boolean) => void;
   setMessage: (e: string) => void;
 }> = ({ handleChangeNewPassword, setMessage, setOpenNoti }) => {
-  const { handleSubmit, control } = useForm<{ email: string; otp: string }>({
+  const { handleSubmit, control } = useForm<IFormInputs>({
     defaultValues: {
       email: "",
       otp: "",
@@ -42,7 +47,7 @@ const ForgetPassword: React.FC<{
     }
   };
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = async (data: IFormInputs) => {
     if (!isSendOtp) {
       const respSendOtp = await sendOtp(data);
       if (respSendOtp) {
@@ -73,14 +78,14 @@ const ForgetPassword: React.FC<{
       handleChangeNewPassword(data.email);
       return;
     }
-  });
+  };
 
   const handleReSendOTP = handleSubmit((data) => {
     sendOtp(data);
   });
 
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div>
         <Controller
           name="email"
@@ -118,7 +123,8 @@ const ForgetPassword: React.FC<{
           <Button
             variant="contained"
             className="w-full capitalize"
-            onClick={onSubmit}
+            // onClick={onSubmit}
+            type="submit"
           >
             Xác thực
           </Button>
@@ -126,7 +132,8 @@ const ForgetPassword: React.FC<{
           <Button
             variant="contained"
             className="w-full capitalize"
-            onClick={onSubmit}
+            // onClick={onSubmit}
+            type="submit"
           >
             Gửi
           </Button>
@@ -140,7 +147,7 @@ const ForgetPassword: React.FC<{
           Gửi lại OTP
         </Button>
       </div>
-    </>
+    </form>
   );
 };
 

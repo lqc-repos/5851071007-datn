@@ -10,25 +10,27 @@ import ArticleSave from "./ArticleSave";
 import ArticleSee from "./AricleSee";
 import CreatePost from "./CreatePost";
 import { usePersonStore } from "@/story";
-import ArticlePublish from "./ArticlePublish";
+import AriclePushlish from "./AriclePushlish";
 
 const NewPost: React.FC = () => {
   const userData: any = usePersonStore((state: any) => state.user);
+  const userStorate = localStorage.getItem('user');
+  const dataCookie = userStorate && JSON.parse(userStorate);
   const [value, setValue] = useState(0);
   const handleClick = (val: number) => {
     setValue(val);
   };
   return (
-    <>
+    <div>
       <div className="max-w-[1336px] m-auto block mt-10">
         <div className="justify-evenly flex-row flex">
           <div className="flex-auto block md:min-w-[328px] md:max-w-[328px]">
             <div className="border-solid border-[1px] border-[#bdbdbd] rounded-lg">
               <div className="flex items-center flex-col py-5">
                 <Avatar sx={{ width: 80, height: 80 }}>H</Avatar>
-                {userData?.role?.role === "Admin" && <span>Quản trị</span>}
-                {userData?.role?.role === "Author" && <span>Tác giả</span>}
-                {userData?.role?.role === "Member" && <span>Thành viên</span>}
+                {dataCookie?.role?.role === "Admin" && <span>Quản trị</span>}
+                {dataCookie?.role?.role === "Author" && <span>Tác giả</span>}
+                {dataCookie?.role?.role === "Member" && <span>Thành viên</span>}
                 <span></span>
               </div>
               <Divider component="li" />
@@ -46,7 +48,7 @@ const NewPost: React.FC = () => {
                   <MenuItem onClick={() => handleClick(3)}>
                     <ListItemText>Bài viết đã xem</ListItemText>
                   </MenuItem>
-                  {userData?.role?.role !== "Member" && (
+                  {dataCookie?.role?.role !== "Member" && (
                     <MenuItem onClick={() => handleClick(4)}>
                       <ListItemText>Bài viết đã tạo</ListItemText>
                     </MenuItem>
@@ -65,8 +67,8 @@ const NewPost: React.FC = () => {
                     style={{ minHeight: "calc(-57px + 100vh)" }}
                   >
                     <Infomation
-                      name={userData?.member?.fullName}
-                      email={userData?.account?.email}
+                      name={dataCookie?.member?.fullName}
+                      email={dataCookie?.account?.email}
                     />
                   </div>
                 )}
@@ -99,7 +101,7 @@ const NewPost: React.FC = () => {
                     className="flex-col flex"
                     style={{ minHeight: "calc(-57px + 100vh)" }}
                   >
-                    <ArticlePublish />
+                    <AriclePushlish />
                   </div>
                 )}
               </div>
@@ -107,7 +109,7 @@ const NewPost: React.FC = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

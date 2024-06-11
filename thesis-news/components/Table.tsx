@@ -28,7 +28,7 @@ const TableCustom: React.FC = () => {
 
   console.log(rows)
   return (
-    <>
+    <div>
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
         <TableContainer sx={{ maxHeight: "90vh" }}>
           <Table stickyHeader aria-label="sticky table">
@@ -84,7 +84,7 @@ const TableCustom: React.FC = () => {
           />
         </div>
       </Paper>
-    </>
+    </div>
   );
 };
 

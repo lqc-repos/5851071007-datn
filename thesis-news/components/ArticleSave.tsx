@@ -14,6 +14,7 @@ const ArticleSave: React.FC = () => {
 
   const getPostSave = async () => {
     setIsLoading(true);
+    const dataCookie = JSON.parse(localStorage.getItem("user") as any);
     const resp = await fetch(`http://localhost:8080/user/get_articles`, {
       method: "POST",
       mode: "cors",
@@ -22,7 +23,7 @@ const ArticleSave: React.FC = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        memberId: userData.member.id,
+        memberId: dataCookie?.member?.id || "",
         type: "saved",
         page: page,
         size: 10,

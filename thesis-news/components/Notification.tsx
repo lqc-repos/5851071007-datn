@@ -8,7 +8,7 @@ type IPropsNotification = {
 const Notification: React.FC<IPropsNotification> = ({ open, message, handleCloseNoti }) => {
     
   return (
-    <>
+    <div>
       <Snackbar
         open={open}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
@@ -16,7 +16,7 @@ const Notification: React.FC<IPropsNotification> = ({ open, message, handleClose
         onClose={handleCloseNoti}
         message={message}
       />
-    </>
+    </div>
   );
 };
 

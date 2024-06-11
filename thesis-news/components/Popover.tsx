@@ -5,7 +5,10 @@ import Link from "next/link";
 import { usePersonStore } from "@/story";
 import { useRouter } from "next/navigation";
 
-const PopoverCustom = () => {
+const PopoverCustom: React.FC<{
+  setDataCookie: (e: any) => void;
+  setIsDataCookie: (e: boolean) => void;
+}> = ({ setDataCookie, setIsDataCookie }) => {
   const router = useRouter();
   const addUser: any = usePersonStore((state: any) => state.addUser);
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
@@ -25,9 +28,12 @@ const PopoverCustom = () => {
   const handleLogOut = () => {
     addUser(false);
     router.push("/");
+    localStorage.removeItem("user");
+    setDataCookie(null);
+    setIsDataCookie(false);
   };
   return (
-    <>
+    <div>
       <div>
         <Button
           id="basic-button"
@@ -53,7 +59,7 @@ const PopoverCustom = () => {
           <MenuItem onClick={() => handleLogOut()}>Đăng xuất</MenuItem>
         </Menu>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -14,7 +14,7 @@ import {
   OutlinedInput,
   TextField,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PopoverCustom from "./Popover";
 import Notification from "./Notification";
 import * as yup from "yup";
@@ -22,6 +22,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { usePersonStore } from "@/story";
 import ForgetPassword from "./ForgetPassword";
 import NewPassword from "./NewPassword";
+import { getCookie, setCookie } from "cookies-next";
 
 interface IFormInputs {
   email: string;
@@ -30,16 +31,38 @@ interface IFormInputs {
 
 const schema = yup
   .object({
-    email: yup.string().email().required("Trường bắt buộc, vui long nhập"),
-    password: yup.string().required("Trường bắt buộc, vui long nhập"),
+    email: yup.string().email().required("Trường bắt buộc, vui lòng nhập"),
+    password: yup.string().required("Trường bắt buộc, vui lòng nhập"),
   })
   .required();
 
 const Login: React.FC = () => {
   const addUser: any = usePersonStore((state: any) => state.addUser);
   const userData: any = usePersonStore((state: any) => state.user);
+
+  const [dataCookie, setDataCookie] = useState(null);
+  const [isDataCookie, setIsDataCookie] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userStorate = localStorage.getItem("user");
+      if (userStorate) {
+        try {
+          setDataCookie(JSON.parse(userStorate));
+        } catch (error) {
+          console.error(
+            "Lỗi khi phân tích dữ liệu JSON từ localStorage:",
+            error
+          );
+          setDataCookie(null);
+        }
+      }
+    }
+  }, [isDataCookie]);
+
   const {
     handleSubmit,
+    reset,
     control,
     formState: { errors },
   } = useForm<IFormInputs>({
@@ -49,11 +72,12 @@ const Login: React.FC = () => {
     },
     resolver: yupResolver(schema),
   });
-  const [open, setOpen] = React.useState(false);
-  const [openNoti, setOpenNoti] = React.useState(false);
-  const [message, setMessage] = React.useState("");
-  const [title, setTitle] = React.useState("Đăng nhập");
-  const [showPassword, setShowPassword] = React.useState(false);
+
+  const [open, setOpen] = useState(false);
+  const [openNoti, setOpenNoti] = useState(false);
+  const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("Đăng nhập");
+  const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(0);
   const [emailNewPassword, setEmailNewPassword] = useState("");
 
@@ -65,6 +89,7 @@ const Login: React.FC = () => {
     setOpen(false);
     setTitle("Đăng nhập");
     setStep(0);
+    reset();
   };
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -73,7 +98,7 @@ const Login: React.FC = () => {
     setTitle(title);
   };
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = async (data: IFormInputs) => {
     if (title === "Đăng nhập") {
       const resp: any = await fetch("http://localhost:8080/user/login", {
         method: "POST",
@@ -91,6 +116,10 @@ const Login: React.FC = () => {
         setMessage(resp?.message);
         return;
       }
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(resp.data));
+      }
+      setIsDataCookie(true);
       addUser(resp.data);
       setOpenNoti(true);
       setMessage("Đăng nhập thành công");
@@ -113,12 +142,16 @@ const Login: React.FC = () => {
         setMessage(resp?.message);
         return;
       }
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(resp.data));
+      }
+      setIsDataCookie(true);
       addUser(resp?.data);
       setOpenNoti(true);
       setMessage("Đăng ký thành công");
       handleClose();
     }
-  });
+  };
 
   const handleCloseNoti = () => {
     setOpenNoti(false);
@@ -140,6 +173,7 @@ const Login: React.FC = () => {
     setStep(0);
     setTitle("Đăng nhập");
   };
+
   return (
     <div>
       <Notification
@@ -147,8 +181,11 @@ const Login: React.FC = () => {
         handleCloseNoti={handleCloseNoti}
         message={message}
       />
-      {userData ? (
-        <PopoverCustom />
+      {dataCookie ? (
+        <PopoverCustom
+          setDataCookie={(e: any) => setDataCookie(e)}
+          setIsDataCookie={(e) => setIsDataCookie(e)}
+        />
       ) : (
         <Button variant="outlined" onClick={handleClickOpen}>
           Đăng nhập
@@ -164,7 +201,9 @@ const Login: React.FC = () => {
           <h1 className="mb-10 text-center text-3xl font-medium">{title}</h1>
           {step === 1 && (
             <ForgetPassword
-              handleChangeNewPassword={(e: string) => handleChangeNewPassword(e)}
+              handleChangeNewPassword={(e: string) =>
+                handleChangeNewPassword(e)
+              }
               setOpenNoti={(e: boolean) => setOpenNoti(e)}
               setMessage={(e: string) => setMessage(e)}
             />
@@ -179,79 +218,86 @@ const Login: React.FC = () => {
           )}
           {step === 0 && (
             <>
-              <Controller
-                name="email"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    label="Email"
-                    variant="outlined"
-                    className="w-full"
-                    autoComplete="no"
-                    {...field}
-                  />
-                )}
-              />
-              <p className="text-[red]">{errors.email?.message}</p>
-              <Controller
-                name="password"
-                control={control}
-                render={({ field }) => (
-                  <FormControl className="w-full mt-6" variant="outlined">
-                    <InputLabel htmlFor="outlined-adornment-password">
-                      Password
-                    </InputLabel>
-                    <OutlinedInput
-                      id="outlined-adornment-password"
-                      type={showPassword ? "text" : "password"}
-                      endAdornment={
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={handleClickShowPassword}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      }
-                      label="Password"
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <Controller
+                  name="email"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
                       {...field}
+                      label="Email"
+                      variant="outlined"
+                      className="w-full"
+                      autoComplete="off" // Ngăn trình duyệt tự động điền
                     />
-                  </FormControl>
-                )}
-              />
-              <p className="text-[red]">{errors.email?.message}</p>
-              <div className="mt-5 w-full">
-                <Button
-                  variant="contained"
-                  className="w-full capitalize"
-                  onClick={onSubmit}
-                >
-                  {title}
-                </Button>
-                <div className="mt-3 flex justify-between">
-                  <div>
-                    <span className="mr-2">Nếu chưa có tài khoản?</span>
-                    <a
-                      className="text-[#1976d2] decoration-1 cursor-pointer underline"
-                      onClick={() =>
-                        handleTitle(
-                          title === "Đăng nhập" ? "Đăng ký" : "Đăng nhập"
-                        )
-                      }
-                    >
-                      {title === "Đăng nhập" ? "Đăng ký" : "Đăng nhập"}
-                    </a>
-                  </div>
-                  <div
-                    className="text-[#1976d2] decoration-1 cursor-pointer"
-                    onClick={handleForgetPassword}
+                  )}
+                />
+                <p className="text-[red]">{errors.email?.message}</p>
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl className="w-full mt-6" variant="outlined">
+                      <InputLabel htmlFor="outlined-adornment-passwordss">
+                        Password
+                      </InputLabel>
+                      <OutlinedInput
+                        {...field}
+                        id="outlined-adornment-passwordss"
+                        type={showPassword ? "text" : "password"}
+                        endAdornment={
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={handleClickShowPassword}
+                              edge="end"
+                            >
+                              {showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        }
+                        label="Password"
+                        autoComplete="new-password"
+                      />
+                    </FormControl>
+                  )}
+                />
+                <p className="text-[red]">{errors.password?.message}</p>
+                <div className="mt-5 w-full">
+                  <Button
+                    variant="contained"
+                    className="w-full capitalize"
+                    type="submit"
                   >
-                    Quên mật khẩu
+                    {title}
+                  </Button>
+                  <div className="mt-3 flex justify-between">
+                    <div>
+                      <span className="mr-2">Nếu chưa có tài khoản?</span>
+                      <a
+                        className="text-[#1976d2] decoration-1 cursor-pointer underline"
+                        onClick={() =>
+                          handleTitle(
+                            title === "Đăng nhập" ? "Đăng ký" : "Đăng nhập"
+                          )
+                        }
+                      >
+                        {title === "Đăng nhập" ? "Đăng ký" : "Đăng nhập"}
+                      </a>
+                    </div>
+                    <div
+                      className="text-[#1976d2] decoration-1 cursor-pointer"
+                      onClick={handleForgetPassword}
+                    >
+                      Quên mật khẩu
+                    </div>
                   </div>
                 </div>
-              </div>
+              </form>
             </>
           )}
         </Box>
