@@ -184,13 +184,27 @@ public class AccountController {
 
             if (CollectionUtils.isEmpty(member.getSavedArticles()))
                 member.setSavedArticles(new ArrayList<>());
+            if (CollectionUtils.isEmpty(member.getViewedArticles()))
+                member.setViewedArticles(new ArrayList<>());
+            String message = "";
             switch (command.getType()) {
                 case "save" -> {
-                    member.getSavedArticles().add(article.getId().toHexString());
+                    if (!member.getSavedArticles().contains(article.getId().toString())) {
+                        member.getSavedArticles().add(article.getId().toHexString());
+                        memberRepository.update(new Document("_id", member.getId()), new Document("savedArticles", member.getSavedArticles()));
+                    }
+                    message = "Đã lưu bài viết";
                 }
                 case "unsave" -> {
                     if (!member.getSavedArticles().remove(article.getId().toHexString()))
                         throw new Exception("Không thể gỡ bài viết hoặc bài viết không tồn tại trong danh sách đã lưu");
+                    memberRepository.update(new Document("_id", member.getId()), new Document("savedArticles", member.getSavedArticles()));
+                }
+                case "view" -> {
+                    if (!member.getSavedArticles().contains(article.getId().toString())) {
+                        member.getViewedArticles().add(article.getId().toHexString());
+                        memberRepository.update(new Document("_id", member.getId()), new Document("viewedArticles", member.getViewedArticles()));
+                    }
                 }
             }
 
@@ -200,7 +214,6 @@ public class AccountController {
             Role role = roleRepository.findOne(new Document("_id", new ObjectId(member.getRoleId())), new Document())
                     .orElseThrow(() -> new Exception("Quyền người dùng không tồn tại"));
 
-            memberRepository.update(new Document("_id", member.getId()), new Document("savedArticles", member.getSavedArticles()));
 
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
@@ -209,6 +222,7 @@ public class AccountController {
                             .member(member)
                             .role(role)
                             .build())
+                    .message(message)
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -234,13 +248,14 @@ public class AccountController {
                     case "viewed" -> articleIds = member.getViewedArticles();
                 }
             }
-
-            List<Article> articles = articleService.get(CommandCommonQuery.builder()
+            List<Article> articles = CollectionUtils.isNotEmpty(articleIds)
+                    ? articleService.get(CommandCommonQuery.builder()
                     .articleIds(new HashSet<>(articleIds))
                     .isDescPublicationDate(true)
                     .page(command.getPage())
                     .size(command.getSize())
-                    .build());
+                    .build())
+                    : new ArrayList<>();
 
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
