@@ -138,7 +138,7 @@ public class AccountController {
                 throw new Exception("Nội dung không được để trống");
             if (StringUtils.isBlank(command.getTopic()))
                 throw new Exception("Chủ đề không được để trống");
-            
+
             Article article = Article.builder()
                     .authors(Collections.singletonList(member.getFullName()))
                     .title(command.getTitle())

@@ -463,41 +463,38 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
             for (ArticleIdfInfo.TfIdfInfo tfIdfInfo : articleIdfInfo.getTfIdfInfos()) {
                 String label = tfIdfInfo.getLabel().toLowerCase().trim();
                 switch (tfIdfInfo.getNer()) {
-                    case "B-PER":
-                    case "I-PER":
+                    case "B-PER", "I-PER" -> {
                         PERLabel perLabel = perLabelMap.getOrDefault(label, PERLabel.builder()
                                 .label(label)
                                 .articleIds(new HashSet<>())
                                 .build());
                         perLabel.getArticleIds().add(articleIdfInfo.getArticleId());
                         perLabelMap.put(label, perLabel);
-                        break;
-                    case "B-ORG":
-                    case "I-ORG":
+                    }
+                    case "B-ORG", "I-ORG" -> {
                         ORGLabel orgLabel = orgLabelMap.getOrDefault(label, ORGLabel.builder()
                                 .label(label)
                                 .articleIds(new HashSet<>())
                                 .build());
                         orgLabel.getArticleIds().add(articleIdfInfo.getArticleId());
                         orgLabelMap.put(label, orgLabel);
-                        break;
-                    case "B-LOC":
-                    case "I-LOC":
+                    }
+                    case "B-LOC", "I-LOC" -> {
                         LOCLabel locLabel = locLabelMap.getOrDefault(label, LOCLabel.builder()
                                 .label(label)
                                 .articleIds(new HashSet<>())
                                 .build());
                         locLabel.getArticleIds().add(articleIdfInfo.getArticleId());
                         locLabelMap.put(label, locLabel);
-                        break;
-                    default:
+                    }
+                    default -> {
                         NLPLabel nlpLabel = nlpLabelMap.getOrDefault(label, NLPLabel.builder()
                                 .label(label)
                                 .articleIds(new HashSet<>())
                                 .build());
                         nlpLabel.getArticleIds().add(articleIdfInfo.getArticleId());
                         nlpLabelMap.put(label, nlpLabel);
-                        break;
+                    }
                 }
             }
         }
