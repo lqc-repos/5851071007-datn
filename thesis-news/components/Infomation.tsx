@@ -29,7 +29,7 @@ const Infomation: React.FC<{ name: string, email: string }> = ({ name, email }) 
           <Divider component="li" className="my-4" />
           <div className="flex flex-col">
             <div className="flex justify-between">
-              <label className="font-semibold pb-2">passwordl: </label>
+              <label className="font-semibold pb-2">Mật khẩu: </label>
               <label className="cursor-pointer">
                 <EditIcon />
               </label>

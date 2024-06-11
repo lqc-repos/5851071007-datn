@@ -6,7 +6,7 @@ import CardIndex from "./CardIndex";
 
 const ArticleSee: React.FC = () => {
   const userData: any = usePersonStore((state: any) => state.user);
-  const [page, setPage] = useState<number>();
+  const [page, setPage] = useState<number>(1);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [totalData, setTotalData] = useState(1);

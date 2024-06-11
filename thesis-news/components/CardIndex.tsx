@@ -17,9 +17,8 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
       <div className={`${isStyle ? "" : "pt-8"} block`}>
         <div>
           <div
-            className={`max-h-[82vh] ${
-              isStyle ? "scroll-visible !pl-0" : "scroll-visible"
-            }`}
+            className={`max-h-[82vh] ${isStyle ? "scroll-visible !pl-0" : "scroll-visible"
+              }`}
           >
             {data.length > 0 &&
               data.map((el: any) => (
@@ -27,9 +26,8 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                   <div className="box-content mr-auto ml-auto block">
                     <div className="justify-center flex ">
                       <div
-                        className={`lg:max-w-[680px] mx-6 min-w-0 w-full ${
-                          isStyle ? "ml-0" : ""
-                        }`}
+                        className={`lg:max-w-[680px] mx-6 min-w-0 w-full ${isStyle ? "ml-0" : ""
+                          }`}
                       >
                         <div className="w-full h-full">
                           <div className="block">
@@ -38,7 +36,7 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                 <Link href={`/article/${el.id}`}>
                                   <div>
                                     <Chip
-                                      label={el.topics[0] || ""}
+                                      label={el.topics && el.topics[0] || ""}
                                       className="bg-[#f17b7b] text-white"
                                     />
                                   </div>
@@ -55,10 +53,10 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                 </div>
                                 <div className="cursor-pointer">
                                   {userData &&
-                                  userData?.member?.savedArticles.length > 0 &&
-                                  userData?.member?.savedArticles.includes(
-                                    el.id
-                                  ) ? (
+                                    userData?.member?.savedArticles.length > 0 &&
+                                    userData?.member?.savedArticles.includes(
+                                      el.id
+                                    ) ? (
                                     <BookmarkIcon />
                                   ) : (
                                     <>
@@ -97,7 +95,7 @@ const CardIndex: React.FC<{ data: [] | never[]; isStyle?: boolean }> = ({
                                               alt="image"
                                               src={
                                                 el.images &&
-                                                el.images.length > 0
+                                                  el.images.length > 0
                                                   ? el?.images[0].url
                                                   : "/No_Image_Available.jpg"
                                               }

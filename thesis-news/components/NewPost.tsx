@@ -10,6 +10,7 @@ import ArticleSave from "./ArticleSave";
 import ArticleSee from "./AricleSee";
 import CreatePost from "./CreatePost";
 import { usePersonStore } from "@/story";
+import ArticlePublish from "./ArticlePublish";
 
 const NewPost: React.FC = () => {
   const userData: any = usePersonStore((state: any) => state.user);
@@ -98,7 +99,7 @@ const NewPost: React.FC = () => {
                     className="flex-col flex"
                     style={{ minHeight: "calc(-57px + 100vh)" }}
                   >
-                    bài viết đã tạo
+                    <ArticlePublish />
                   </div>
                 )}
               </div>
