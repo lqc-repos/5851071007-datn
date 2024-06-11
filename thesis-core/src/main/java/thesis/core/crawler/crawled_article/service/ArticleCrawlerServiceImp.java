@@ -129,7 +129,7 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
 
     @Override
     public Optional<Boolean> crawlImages() {
-        ExecutorService executor = Executors.newFixedThreadPool(20);
+        ExecutorService executor = Executors.newFixedThreadPool(5);
         Set<String> urls = new HashSet<>();
         Long totalCrawledArticle = crawledArticleService.count(CommandQueryCrawledArticle.builder().build()).orElseThrow();
         int sizePerPage = 100, totalPage = (int) ((totalCrawledArticle + sizePerPage - 1) / sizePerPage);
