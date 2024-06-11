@@ -130,14 +130,24 @@ public class AccountController {
 
             if (!role.getNumberValue().equals(DEFAULT_ROLE.AUTHOR.getNumberValue()))
                 throw new Exception("Người dùng không có quyền đăng bài");
-
+            if (StringUtils.isBlank(command.getTitle()))
+                throw new Exception("Tiêu đề không được để trống");
+            if (StringUtils.isBlank(command.getDescription()))
+                throw new Exception("Mô tả đề không được để trống");
+            if (StringUtils.isBlank(command.getContent()))
+                throw new Exception("Nội dung không được để trống");
+            if (StringUtils.isBlank(command.getTopic()))
+                throw new Exception("Chủ đề không được để trống");
+            
             Article article = Article.builder()
                     .authors(Collections.singletonList(member.getFullName()))
                     .title(command.getTitle())
                     .content(command.getContent())
                     .description(command.getDescription())
+                    .topics(Collections.singletonList(command.getTopic()))
                     .labels(CollectionUtils.isNotEmpty(command.getLabels()) ? command.getLabels() : new ArrayList<>())
                     .images(command.getImages())
+                    .publicationDate(System.currentTimeMillis() / 1000)
                     .build();
             articleService.add(article);
 
@@ -152,6 +162,7 @@ public class AccountController {
                     .data(SearchEngineResult.builder()
                             .articles(Collections.singletonList(article))
                             .build())
+                    .message("Đăng bài thành công")
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
