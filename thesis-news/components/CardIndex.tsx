@@ -11,7 +11,8 @@ import Notification from "./Notification";
 const CardIndex: React.FC<{
   data: [] | never[];
   isStyle?: boolean;
-}> = ({ data, isStyle = false }) => {
+  handleRefresh?: () => void;
+}> = ({ data, isStyle = false, handleRefresh }) => {
   const [dataCookie, setDataCookie] = useState<null | any>(null);
   const [openNoti, setOpenNoti] = useState(false);
   const [message, setMessage] = useState("");
@@ -32,7 +33,9 @@ const CardIndex: React.FC<{
         }
       }
     }
-  }, [isDataCookie]);
+    // thêm localStorage.getItem('user') để test thử việc khi login vào thì chạy lại hàm useEffect
+    // nếu có thì setDataCookie lên và sẽ hiện bookmask
+  }, [isDataCookie, localStorage.getItem("user")]);
 
   const handleBookmask = async (id: string, type: string) => {
     const memberId = JSON.parse(localStorage.getItem("user") as any);
@@ -52,16 +55,24 @@ const CardIndex: React.FC<{
       .then((result) => result.json())
       .catch((e) => console.log(e));
 
-    if (resp.statusCode !== 200) {
+    if (resp?.statusCode !== 200) {
       setOpenNoti(true);
       setMessage(resp?.message || resp?.data?.message);
     }
 
-    if (resp.statusCode === 200) {
+    if (resp?.statusCode === 200) {
       setOpenNoti(true);
       setMessage(resp?.message || resp?.data?.message);
       localStorage.setItem("user", JSON.stringify(resp?.data));
       setIsDataCookie(!isDataCookie);
+      
+      // sẽ có 2 case 
+      // 1 case ở trang home thì ko cần gọi handleRefresh vì nó có thể save và unsave bookmask liên tục
+      // 1 case khi ở trang quản lý thì khi unsave sẽ remove item bằng cách call lại api get list bookmask
+      // khi do chạy handleRefresh để ArticleSave.tsx hứng và chạy lại hàm get data
+      if (handleRefresh) {
+        handleRefresh();
+      }
     }
   };
 
