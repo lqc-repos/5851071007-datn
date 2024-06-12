@@ -76,39 +76,35 @@ public class ReportController {
             } else {
                 AggregateIterable<Document> aggregateResult = null;
                 switch (REPORT_TYPE.fromValue(command.getReportType())) {
-                    case REGISTRY -> {
-                        aggregateResult = memberRepository.getMongoDBOperation().aggregateSpecial(Arrays.asList(
-                                new Document("$match", new Document("isDeleted", false)
-                                        .append("isActive", true)
-                                        .append("createdDate", new Document("$gte", startOfDay).append("$lte", endOfDay))),
-                                new Document("$group", new Document("_id", new Document("year", new Document("$year", new Document("$toDate", new Document("$multiply", Arrays.asList("$createdDate", 1000)))))
-                                        .append("month", new Document("$month", new Document("$toDate", new Document("$multiply", Arrays.asList("$createdDate", 1000)))))
-                                        .append("day", new Document("$dayOfMonth", new Document("$toDate", new Document("$multiply", Arrays.asList("$createdDate", 1000))))))
-                                        .append("count", new Document("$sum", 1))),
-                                new Document("$sort", new Document("_id.year", 1).append("_id.month", 1).append("_id.day", 1)),
-                                new Document("$project", new Document("_id", 0)
-                                        .append("date", new Document("$dateFromParts", new Document("year", "$_id.year")
-                                                .append("month", "$_id.month")
-                                                .append("day", "$_id.day")))
-                                        .append("count", 1))
-                        ));
-                    }
-                    case PUBLISH -> {
-                        aggregateResult = articleRepository.getMongoDBOperation().aggregateSpecial(Arrays.asList(
-                                new Document("$match", new Document("isDeleted", false)
-                                        .append("createdDate", new Document("$gte", startOfDay).append("$lte", endOfDay))),
-                                new Document("$group", new Document("_id", new Document("year", new Document("$year", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000)))))
-                                        .append("month", new Document("$month", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000)))))
-                                        .append("day", new Document("$dayOfMonth", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000))))))
-                                        .append("count", new Document("$sum", 1))),
-                                new Document("$sort", new Document("_id.year", 1).append("_id.month", 1).append("_id.day", 1)),
-                                new Document("$project", new Document("_id", 0)
-                                        .append("date", new Document("$dateFromParts", new Document("year", "$_id.year")
-                                                .append("month", "$_id.month")
-                                                .append("day", "$_id.day")))
-                                        .append("count", 1))
-                        ));
-                    }
+                    case REGISTRY -> aggregateResult = memberRepository.getMongoDBOperation().aggregateSpecial(Arrays.asList(
+                            new Document("$match", new Document("isDeleted", false)
+                                    .append("isActive", true)
+                                    .append("createdDate", new Document("$gte", startOfDay).append("$lte", endOfDay))),
+                            new Document("$group", new Document("_id", new Document("year", new Document("$year", new Document("$toDate", new Document("$multiply", Arrays.asList("$createdDate", 1000)))))
+                                    .append("month", new Document("$month", new Document("$toDate", new Document("$multiply", Arrays.asList("$createdDate", 1000)))))
+                                    .append("day", new Document("$dayOfMonth", new Document("$toDate", new Document("$multiply", Arrays.asList("$createdDate", 1000))))))
+                                    .append("count", new Document("$sum", 1))),
+                            new Document("$sort", new Document("_id.year", 1).append("_id.month", 1).append("_id.day", 1)),
+                            new Document("$project", new Document("_id", 0)
+                                    .append("date", new Document("$dateFromParts", new Document("year", "$_id.year")
+                                            .append("month", "$_id.month")
+                                            .append("day", "$_id.day")))
+                                    .append("count", 1))
+                    ));
+                    case PUBLISH -> aggregateResult = articleRepository.getMongoDBOperation().aggregateSpecial(Arrays.asList(
+                            new Document("$match", new Document("isDeleted", false)
+                                    .append("createdDate", new Document("$gte", startOfDay).append("$lte", endOfDay))),
+                            new Document("$group", new Document("_id", new Document("year", new Document("$year", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000)))))
+                                    .append("month", new Document("$month", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000)))))
+                                    .append("day", new Document("$dayOfMonth", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000))))))
+                                    .append("count", new Document("$sum", 1))),
+                            new Document("$sort", new Document("_id.year", 1).append("_id.month", 1).append("_id.day", 1)),
+                            new Document("$project", new Document("_id", 0)
+                                    .append("date", new Document("$dateFromParts", new Document("year", "$_id.year")
+                                            .append("month", "$_id.month")
+                                            .append("day", "$_id.day")))
+                                    .append("count", 1))
+                    ));
                 }
                 if (aggregateResult != null)
                     for (Document doc : aggregateResult) {
