@@ -21,6 +21,7 @@ public class Member extends CommonDTO {
     private String avatar;
     private String roleId;
     private String authorId;
+    private Boolean isActive;
     private List<String> savedArticles;
     private List<String> viewedArticles;
     private List<String> publishedArticles;

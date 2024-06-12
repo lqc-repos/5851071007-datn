@@ -2,99 +2,57 @@ package thesis.utils.mail;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import thesis.utils.constant.MAIL_SENDER_TYPE;
 
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Service
+@Log4j2
 public class MailSender {
     @Value("${opt.expire-duration}")
     private int expireDuration;
-
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy");
     @Autowired
     private JavaMailSender javaMailSender;
 
-    public void send(
-            String to, String subject, String text) throws MessagingException {
+    public void send(CommandMail command) throws MessagingException {
 
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-        // Prepare the HTML content
-        int expireDurationInMinute = expireDuration / 60;
-        String html = String.format("<!DOCTYPE html>\n" +
-                "<html lang=\"vi\">\n" +
-                "<head>\n" +
-                "    <meta charset=\"UTF-8\">\n" +
-                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-                "    <title>Xác Nhận OTP</title>\n" +
-                "    <style>\n" +
-                "        body {\n" +
-                "            font-family: 'Arial', sans-serif;\n" +
-                "            background-color: #f4f4f4;\n" +
-                "            margin: 0;\n" +
-                "            padding: 0;\n" +
-                "        }\n" +
-                "        .email-container {\n" +
-                "            max-width: 600px;\n" +
-                "            margin: auto;\n" +
-                "            background: white;\n" +
-                "            padding: 20px;\n" +
-                "            border-radius: 10px;\n" +
-                "            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\n" +
-                "        }\n" +
-                "        .email-header {\n" +
-                "            background-color: #007bff;\n" +
-                "            color: white;\n" +
-                "            padding: 10px;\n" +
-                "            border-top-left-radius: 10px;\n" +
-                "            border-top-right-radius: 10px;\n" +
-                "            text-align: center;\n" +
-                "        }\n" +
-                "        .email-body {\n" +
-                "            padding: 20px;\n" +
-                "            text-align: center;\n" +
-                "            color: #333;\n" +
-                "        }\n" +
-                "        .otp-code {\n" +
-                "            font-size: 24px;\n" +
-                "            margin: 20px 0;\n" +
-                "            padding: 10px;\n" +
-                "            background-color: #e9ecef;\n" +
-                "            display: inline-block;\n" +
-                "            border-radius: 5px;\n" +
-                "            font-weight: bold;\n" +
-                "        }\n" +
-                "        .instructions {\n" +
-                "            font-size: 16px;\n" +
-                "            color: #666;\n" +
-                "            margin-top: 20px;\n" +
-                "        }\n" +
-                "    </style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "    <div class=\"email-container\">\n" +
-                "        <div class=\"email-header\">\n" +
-                "            Mã Xác Minh OTP\n" +
-                "        </div>\n" +
-                "        <div class=\"email-body\">\n" +
-                "            <p>Vui lòng sử dụng mã OTP sau để hoàn tất xác minh của bạn:</p>\n" +
-                "            <div class=\"otp-code\">%s</div>\n" +
-                "            <p class=\"instructions\">Mã OTP này chỉ có hiệu lực trong vòng %d phút.</p>\n" +
-                "        </div>\n" +
-                "    </div>\n" +
-                "</body>\n" +
-                "</html>\n", text, expireDurationInMinute);
+        String html = getMailContent(command);
+        if (StringUtils.isBlank(html)) {
+            log.warn("Mail content is empty");
+            return;
+        }
         helper.setFrom("noreply@thesisnews.com");
-        helper.setTo(to);
+        helper.setSubject(command.getSubject());
+        helper.setTo(command.getTo());
         helper.setText(html, true);
-        helper.setSubject(subject);
 
         javaMailSender.send(message);
 
+    }
+
+    private String getMailContent(CommandMail command) {
+        switch (command.getMailSenderType()) {
+            case OTP -> {
+                int expireDurationInMinute = expireDuration / 60;
+                return String.format(MAIL_SENDER_TYPE.OTP.getTemplate(), command.getOtp(), expireDurationInMinute);
+            }
+            case PASSWORD_CHANGED -> {
+                return String.format(MAIL_SENDER_TYPE.PASSWORD_CHANGED.getTemplate(), simpleDateFormat.format(new Date()));
+            }
+        }
+        return null;
     }
 }

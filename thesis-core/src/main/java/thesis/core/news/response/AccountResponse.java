@@ -1,4 +1,4 @@
-package thesis.core.news.command;
+package thesis.core.news.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

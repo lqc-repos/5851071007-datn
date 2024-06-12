@@ -1,6 +1,8 @@
 package thesis.api;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -20,12 +22,18 @@ import thesis.core.news.account.repository.AccountRepository;
 import thesis.core.news.command.*;
 import thesis.core.news.member.Member;
 import thesis.core.news.member.repository.MemberRepository;
+import thesis.core.news.response.AccountResponse;
+import thesis.core.news.response.OtpResponse;
+import thesis.core.news.response.UserResponse;
 import thesis.core.news.role.Role;
 import thesis.core.news.role.repository.RoleRepository;
 import thesis.core.search_engine.dto.SearchEngineResult;
 import thesis.utils.constant.DEFAULT_ROLE;
+import thesis.utils.constant.MAIL_SENDER_TYPE;
 import thesis.utils.dto.ResponseDTO;
+import thesis.utils.helper.PageHelper;
 import thesis.utils.helper.PasswordHelper;
+import thesis.utils.mail.CommandMail;
 import thesis.utils.mail.MailSender;
 import thesis.utils.otp.OtpCacheService;
 
@@ -59,6 +67,9 @@ public class AccountController {
 
             Member member = memberRepository.findOne(new Document("_id", new ObjectId(account.getMemberId())), new Document())
                     .orElseThrow(() -> new Exception("Dữ liệu người dùng không tồn tại"));
+
+            if (BooleanUtils.isNotTrue(member.getIsActive()))
+                throw new Exception("Tài khoản đã bị khóa, vui lòng liên hệ admin");
 
             Role role = roleRepository.findOne(new Document("_id", new ObjectId(member.getRoleId())), new Document())
                     .orElseThrow(() -> new Exception("Quyền người dùng không tồn tại"));
@@ -95,9 +106,11 @@ public class AccountController {
 
             Account account = Account.builder()
                     .email(command.getEmail())
-                    .password(command.getPassword())
+                    .password(PasswordHelper.hashPassword(command.getPassword()))
                     .memberId(member.getId().toString())
                     .build();
+
+            accountRepository.insert(account);
 
             Role role = roleRepository.findOne(new Document("_id", new ObjectId(member.getRoleId())), new Document())
                     .orElseThrow(() -> new Exception("Quyền người dùng không tồn tại"));
@@ -317,13 +330,19 @@ public class AccountController {
             String otp = otpCacheService.generateOTP(4);
             try {
                 otpCacheService.storeOtp(command.getEmail(), otp);
-                mailSender.send(command.getEmail(), "Đổi mật khẩu", otp);
+                mailSender.send(CommandMail.builder()
+                        .to(command.getEmail())
+                        .subject("Yêu cầu đổi mật khẩu")
+                        .otp(otp)
+                        .mailSenderType(MAIL_SENDER_TYPE.OTP)
+                        .build());
             } catch (Exception ex) {
+                ex.printStackTrace();
                 throw new Exception("Gửi otp thất bại, vui lòng thử lại");
             }
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(CommandOtpResponse.builder()
+                    .data(OtpResponse.builder()
                             .email(command.getEmail())
                             .isSuccess(true)
                             .message("Gửi otp thành công")
@@ -352,7 +371,7 @@ public class AccountController {
             otpCacheService.clearOtp(command.getEmail());
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(CommandOtpResponse.builder()
+                    .data(OtpResponse.builder()
                             .email(command.getEmail())
                             .isSuccess(true)
                             .message("Xác thực otp thành công")
@@ -380,11 +399,154 @@ public class AccountController {
             accountRepository.update(new Document("_id", accountOptional.get().getId()), new Document("password", PasswordHelper.hashPassword(command.getPassword())));
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(CommandOtpResponse.builder()
+                    .data(OtpResponse.builder()
                             .email(command.getEmail())
                             .isSuccess(true)
                             .message("Đổi mật khẩu thành công")
                             .build())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/change-password")
+    public ResponseEntity<ResponseDTO<?>> changePassword(@RequestBody CommandChangePassword command) {
+        try {
+            if (StringUtils.isBlank(command.getEmail()))
+                throw new Exception("Email không hợp lệ");
+            if (StringUtils.isBlank(command.getPassword()))
+                throw new Exception("Mật khẩu không hợp lệ");
+            Optional<Account> accountOptional = accountRepository.findOne(new Document("email", command.getEmail()), new Document());
+            if (accountOptional.isEmpty())
+                throw new Exception("Tài khoản không tồn tại");
+            if (!PasswordHelper.checkPassword(command.getOldPassword(), accountOptional.get().getPassword()))
+                throw new Exception("Mật khẩu không đúng");
+            accountRepository.update(new Document("_id", accountOptional.get().getId()), new Document("password", PasswordHelper.hashPassword(command.getPassword())));
+            mailSender.send(CommandMail.builder()
+                    .to(command.getEmail())
+                    .subject("Cập nhật mật khẩu thành công")
+                    .mailSenderType(MAIL_SENDER_TYPE.PASSWORD_CHANGED)
+                    .build());
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(OtpResponse.builder()
+                            .email(command.getEmail())
+                            .isSuccess(true)
+                            .message("Đổi mật khẩu thành công")
+                            .build())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/list")
+    public ResponseEntity<ResponseDTO<?>> getUsers(@RequestBody CommandGetListUser command) {
+        try {
+            Member member = memberRepository.findOne(new Document("_id", new ObjectId(command.getMemberId())), new Document())
+                    .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
+
+            Role role = roleRepository.findOne(new Document("_id", new ObjectId(member.getRoleId())), new Document())
+                    .orElseThrow(() -> new Exception("Quyền người dùng không tồn tại"));
+
+            if (!role.getNumberValue().equals(DEFAULT_ROLE.ADMIN.getNumberValue()))
+                throw new Exception("Người dùng không có quyền");
+            Map<String, Object> queryMember = new HashMap<>();
+            queryMember.put("roleId", new Document("$ne", DEFAULT_ROLE.ADMIN.getRoleId()));
+
+            Map<String, Object> queryAccount = new HashMap<>();
+            if (StringUtils.isNotBlank(command.getSearchEmail())) {
+                queryAccount.put("email", command.getSearchEmail());
+                Optional<Account> accountOptional = accountRepository.findOne(queryAccount, new Document());
+                accountOptional.ifPresent(account -> queryMember.put("_id", new ObjectId(account.getMemberId())));
+            }
+
+            Long totalUser = memberRepository.count(new Document(queryMember)).orElse(0L);
+            List<Member> members = memberRepository.find(queryMember,
+                    new Document("createdDate", -1),
+                    new Document(),
+                    PageHelper.getSkip(command.getPage(), command.getSize()),
+                    command.getSize());
+
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(UserResponse.builder()
+                            .email(command.getSearchEmail())
+                            .members(members)
+                            .page(command.getPage())
+                            .size(command.getSize())
+                            .total(totalUser)
+                            .totalPage(PageHelper.getTotalPage(totalUser, command.getSize()))
+                            .build())
+                    .build(), HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(-1)
+                    .message(ex.getMessage())
+                    .build(), HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/update")
+    public ResponseEntity<ResponseDTO<?>> updateUser(@RequestBody CommandUpdateUser command) {
+        try {
+            if (StringUtils.isBlank(command.getUpdateMemberId()))
+                throw new Exception("Vui lòng thêm người dùng cần cập nhật");
+            Map<String, Object> updateQuery = new HashMap<>();
+
+            Member updateMember = memberRepository.findOne(new Document("_id", new ObjectId(command.getUpdateMemberId())), new Document())
+                    .orElseThrow(() -> new Exception("Thông tin người dùng không tồn tại"));
+
+            if (command.getRoleLevel() != null || command.getIsBlocked() != null) {
+                Member adminMember = memberRepository.findOne(new Document("_id", new ObjectId(command.getMemberId())), new Document())
+                        .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
+
+                Role role = roleRepository.findOne(new Document("_id", new ObjectId(adminMember.getRoleId())), new Document())
+                        .orElseThrow(() -> new Exception("Quyền người dùng không tồn tại"));
+
+                if (!role.getNumberValue().equals(DEFAULT_ROLE.ADMIN.getNumberValue()))
+                    throw new Exception("Người dùng không có quyền");
+
+
+                if (command.getRoleLevel() != null) {
+                    if (Objects.equals(DEFAULT_ROLE.getRoleIdByNumberValue(command.getRoleLevel()), updateMember.getRoleId()))
+                        throw new Exception("Cập nhật quyền không thành công");
+                    updateMember.setRoleId(DEFAULT_ROLE.getRoleIdByNumberValue(command.getRoleLevel()));
+                    updateQuery.put("roleId", updateMember.getRoleId());
+                }
+
+                if (command.getIsBlocked() != null) {
+                    updateMember.setIsActive(!command.getIsBlocked());
+                    updateQuery.put("isActive", updateMember.getIsActive());
+                }
+            } else {
+                if (!updateMember.getId().toString().equals(command.getMemberId()))
+                    throw new Exception("Vui lòng đăng nhập và thử lại");
+                if (StringUtils.isNotBlank(command.getFullName())) {
+                    updateMember.setFullName(command.getFullName());
+                    updateQuery.put("fullName", updateMember.getFullName());
+                }
+            }
+
+            if (MapUtils.isEmpty(updateQuery))
+                throw new Exception("Không có thông tin cần cập nhật, vui lòng kiểm tra lại");
+
+            memberRepository.update(new Document("_id", updateMember.getId()), updateQuery);
+
+            return new ResponseEntity<>(ResponseDTO.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .data(updateMember)
+                    .message("Cập nhật thông tin thành công")
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();

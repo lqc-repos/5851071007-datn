@@ -1,4 +1,4 @@
-package thesis.core.news.command;
+package thesis.core.news.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class CommandOtpResponse {
+public class OtpResponse {
     private String email;
     private Boolean isSuccess;
     private String message;

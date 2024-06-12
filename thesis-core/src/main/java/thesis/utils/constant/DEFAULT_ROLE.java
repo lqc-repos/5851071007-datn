@@ -11,4 +11,13 @@ public enum DEFAULT_ROLE {
     MEMBER("6664327f2cad8f06e1b410d1", 3);
     private final String roleId;
     private final int numberValue;
+
+    public static String getRoleIdByNumberValue(int numberValue) {
+        for (DEFAULT_ROLE role : DEFAULT_ROLE.values()) {
+            if (role.getNumberValue() == numberValue) {
+                return role.getRoleId();
+            }
+        }
+        return null;
+    }
 }

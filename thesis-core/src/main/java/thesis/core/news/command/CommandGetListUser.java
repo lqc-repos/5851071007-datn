@@ -9,9 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class CommandChangePassword {
-    private String email;
-    private String oldPassword;
-    private String password;
-    private String otp;
+public class CommandGetListUser {
+    private String memberId;
+    private String searchEmail;
+    @Builder.Default
+    private Integer page = 1;
+    @Builder.Default
+    private Integer size = 10;
 }
