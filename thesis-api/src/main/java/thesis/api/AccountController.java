@@ -22,6 +22,8 @@ import thesis.core.news.account.repository.AccountRepository;
 import thesis.core.news.command.*;
 import thesis.core.news.member.Member;
 import thesis.core.news.member.repository.MemberRepository;
+import thesis.core.news.report.news_report.NewsReport;
+import thesis.core.news.report.news_report.repository.NewsReportRepository;
 import thesis.core.news.response.AccountResponse;
 import thesis.core.news.response.OtpResponse;
 import thesis.core.news.response.UserResponse;
@@ -30,6 +32,7 @@ import thesis.core.news.role.repository.RoleRepository;
 import thesis.core.search_engine.dto.SearchEngineResult;
 import thesis.utils.constant.DEFAULT_ROLE;
 import thesis.utils.constant.MAIL_SENDER_TYPE;
+import thesis.utils.constant.REPORT_TYPE;
 import thesis.utils.dto.ResponseDTO;
 import thesis.utils.helper.PageHelper;
 import thesis.utils.helper.PasswordHelper;
@@ -37,11 +40,15 @@ import thesis.utils.mail.CommandMail;
 import thesis.utils.mail.MailSender;
 import thesis.utils.otp.OtpCacheService;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
 @RestController
 @RequestMapping("/user")
 public class AccountController {
+    private static final ZoneOffset ZONE_OFFSET = ZoneOffset.of("+07:00");
+
     @Autowired
     private AccountRepository accountRepository;
     @Autowired
@@ -56,6 +63,8 @@ public class AccountController {
     private MailSender mailSender;
     @Autowired
     private OtpCacheService otpCacheService;
+    @Autowired
+    private NewsReportRepository newsReportRepository;
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
     public ResponseEntity<ResponseDTO<?>> login(@RequestBody CommandLogin command) {
@@ -189,11 +198,17 @@ public class AccountController {
     @RequestMapping(method = RequestMethod.POST, value = "/save")
     public ResponseEntity<ResponseDTO<?>> save(@RequestBody CommandSave command) {
         try {
-            Member member = memberRepository.findOne(new Document("_id", new ObjectId(command.getMemberId())), new Document())
-                    .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
-
             Article article = articleRepository.findOne(new Document("_id", new ObjectId(command.getArticleId())), new Document())
                     .orElseThrow(() -> new Exception("Bài báo không tồn tại"));
+
+            if ("view".equals(command.getType())) {
+                processReportedLabel(Set.of(article.getId().toHexString()));
+            }
+            if (StringUtils.isBlank(command.getMemberId()))
+                return new ResponseEntity<>(ResponseDTO.builder().build(), HttpStatus.OK);
+
+            Member member = memberRepository.findOne(new Document("_id", new ObjectId(command.getMemberId())), new Document())
+                    .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
 
             if (CollectionUtils.isEmpty(member.getSavedArticles()))
                 member.setSavedArticles(new ArrayList<>());
@@ -555,5 +570,44 @@ public class AccountController {
                     .message(ex.getMessage())
                     .build(), HttpStatus.OK);
         }
+    }
+
+    static int duplicateSave = 0;
+
+    private void processReportedLabel(Set<String> labels) {
+        if (duplicateSave % 2 != 0) {
+            duplicateSave = 0;
+            return;
+        }
+        duplicateSave++;
+        long currentTime = System.currentTimeMillis() / 1000;
+        long startOfDay = LocalDateTime.ofEpochSecond(currentTime, 0, ZONE_OFFSET).toLocalDate()
+                .atStartOfDay().toEpochSecond(ZONE_OFFSET);
+
+        if (CollectionUtils.isEmpty(labels))
+            return;
+
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("reportDate", startOfDay);
+        queryMap.put("reportType", REPORT_TYPE.VIEW.getValue());
+        Map<String, Object> sortMap = new HashMap<>();
+        sortMap.put("updatedDate", -1);
+        sortMap.put("createdDate", -1);
+
+        NewsReport newsReport = newsReportRepository.findOne(queryMap, sortMap).orElse(null);
+        if (newsReport == null) {
+            newsReport = NewsReport.builder()
+                    .reportDate(startOfDay)
+                    .reportType(REPORT_TYPE.VIEW.getValue())
+                    .labelCounts(new HashMap<>())
+                    .build();
+            newsReportRepository.insert(newsReport);
+        }
+
+        for (String label : labels) {
+            newsReport.getLabelCounts().compute(label, (k, v) -> (v == null) ? 1 : v + 1);
+        }
+
+        newsReportRepository.update(new Document("_id", newsReport.getId()), new Document("labelCounts", newsReport.getLabelCounts()));
     }
 }
