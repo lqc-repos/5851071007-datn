@@ -121,7 +121,7 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
     @Override
     public Optional<Boolean> migrateImages() {
         Long totalCrawledArticle = crawledArticleService.count(CommandQueryCrawledArticle.builder().build()).orElseThrow();
-        int sizePerPage = 500, totalPage = (int) ((totalCrawledArticle + sizePerPage - 1) / sizePerPage);
+        int sizePerPage = 1000, totalPage = (int) ((totalCrawledArticle + sizePerPage - 1) / sizePerPage);
         AtomicInteger counter = new AtomicInteger(0);
         for (int i = 0; i < totalPage; i++) {
             int finalI = i;
