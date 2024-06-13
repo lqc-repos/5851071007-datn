@@ -23,9 +23,7 @@ import thesis.utils.constant.REPORT_TYPE;
 import thesis.utils.dto.ResponseDTO;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.*;
 
 @RestController
@@ -59,6 +57,7 @@ public class ReportController {
             Map<String, Object> updateQuery = new HashMap<>();
             updateQuery.put("createdDate", newCreatedDate);
             updateQuery.put("email", email);
+            updateQuery.put("isActive", true);
 
             memberRepository.update(new Document("_id", member.getId()), updateQuery);
 
@@ -103,6 +102,15 @@ public class ReportController {
                         .stream()
                         .sorted(Comparator.comparing(ReportResponse.Report::getValue).reversed()).toList();
             } else {
+                List<Document> allDates = new ArrayList<>();
+                LocalDate startDate = Instant.ofEpochSecond(startOfDay).atZone(ZONE_OFFSET).toLocalDate();
+                LocalDate endDate = Instant.ofEpochSecond(endOfDay).atZone(ZONE_OFFSET).toLocalDate();
+
+                while (!startDate.isAfter(endDate)) {
+                    allDates.add(new Document("date", startDate.toString()).append("count", 0L));
+                    startDate = startDate.plusDays(1);
+                }
+
                 AggregateIterable<Document> aggregateResult = null;
                 switch (REPORT_TYPE.fromValue(command.getReportType())) {
                     case REGISTRY ->
@@ -137,15 +145,28 @@ public class ReportController {
                                             .append("count", 1))
                             ));
                 }
-                if (aggregateResult != null)
+
+                if (aggregateResult != null) {
+                    Map<String, Long> resultMap = new HashMap<>();
                     for (Document doc : aggregateResult) {
                         Date date = doc.getDate("date");
                         Long count = Long.valueOf(doc.getInteger("count"));
+                        resultMap.put(dateFormat.format(date), count);
+                    }
+
+                    for (Document dateDoc : allDates) {
+                        String dateStr = dateDoc.getString("date");
+                        Date date = Date.from(LocalDate.parse(dateStr).atStartOfDay(ZONE_OFFSET).toInstant());
+                        if (resultMap.containsKey(dateFormat.format(date))) {
+                            dateDoc.put("count", resultMap.get(dateFormat.format(date)));
+                        }
+
                         reports.add(ReportResponse.Report.builder()
                                 .key(dateFormat.format(date))
-                                .value(count)
+                                .value(dateDoc.getLong("count"))
                                 .build());
                     }
+                }
             }
 
             return new ResponseEntity<>(ResponseDTO.builder()
