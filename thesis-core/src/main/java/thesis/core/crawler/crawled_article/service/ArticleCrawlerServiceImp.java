@@ -129,7 +129,7 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
 
     @Override
     public Optional<Boolean> crawlImages() {
-        ExecutorService executor = Executors.newFixedThreadPool(5);
+        ExecutorService executor = Executors.newFixedThreadPool(10);
         Set<String> urls = new HashSet<>();
         Long totalCrawledArticle = crawledArticleService.count(CommandQueryCrawledArticle.builder().build()).orElseThrow();
         int sizePerPage = 100, totalPage = (int) ((totalCrawledArticle + sizePerPage - 1) / sizePerPage);
@@ -138,7 +138,7 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
             int finalI = i;
             CompletableFuture.runAsync(() -> {
                 List<CrawledArticle> crawledArticles = crawledArticleService.getMany(CommandQueryCrawledArticle.builder()
-                        .isDescPublicationDate(false)
+                        .isDescPublicationDate(true)
                         .page(finalI)
                         .size(sizePerPage)
                         .build());
@@ -173,10 +173,15 @@ public class ArticleCrawlerServiceImp implements ArticleCrawlerService {
                                         String[] parts = imgUrl.split(" ");
                                         if (parts.length == 2 && parts[1].equals("1x")) {
                                             String imageUrl = parts[0];
-                                            images.add(CrawledArticle.Image.builder()
+                                            CrawledArticle.Image image = CrawledArticle.Image.builder()
                                                     .url(imageUrl)
-                                                    .description(imageDescriptions.get(count++))
-                                                    .build());
+                                                    .build();
+                                            try {
+                                                image.setDescription(imageDescriptions.get(count++));
+                                            } catch (Exception ex) {
+                                                log.warn("----- No description: {}", crawledArticle.getUrl());
+                                            }
+                                            images.add(image);
                                         }
                                     }
                                 } else {

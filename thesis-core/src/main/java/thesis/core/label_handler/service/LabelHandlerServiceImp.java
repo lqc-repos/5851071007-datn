@@ -45,6 +45,8 @@ import thesis.utils.constant.ConfigurationName;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -119,17 +121,22 @@ public class LabelHandlerServiceImp implements LabelHandlerService {
     @Override
     public Optional<Boolean> migrateImages() {
         Long totalCrawledArticle = crawledArticleService.count(CommandQueryCrawledArticle.builder().build()).orElseThrow();
-        int sizePerPage = 50, totalPage = (int) ((totalCrawledArticle + sizePerPage - 1) / sizePerPage);
+        int sizePerPage = 500, totalPage = (int) ((totalCrawledArticle + sizePerPage - 1) / sizePerPage);
+        AtomicInteger counter = new AtomicInteger(0);
         for (int i = 0; i < totalPage; i++) {
-            List<CrawledArticle> crawledArticles = crawledArticleService.getMany(CommandQueryCrawledArticle.builder()
-                    .isDescPublicationDate(false)
-                    .page(i)
-                    .size(sizePerPage)
-                    .build());
-            for (CrawledArticle crawledArticle : crawledArticles) {
-                if (CollectionUtils.isNotEmpty(crawledArticle.getImages()))
-                    articleRepository.update(new Document("url", crawledArticle.getUrl()), new Document("images", crawledArticle.getImages()));
-            }
+            int finalI = i;
+            CompletableFuture.runAsync(() -> {
+                List<CrawledArticle> crawledArticles = crawledArticleService.getMany(CommandQueryCrawledArticle.builder()
+                        .isDescPublicationDate(true)
+                        .page(finalI)
+                        .size(sizePerPage)
+                        .build());
+                for (CrawledArticle crawledArticle : crawledArticles) {
+                    if (CollectionUtils.isNotEmpty(crawledArticle.getImages()))
+                        articleRepository.update(new Document("url", crawledArticle.getUrl()), new Document("images", crawledArticle.getImages()));
+                    log.info("------ count: {}", counter.incrementAndGet());
+                }
+            });
         }
         return Optional.of(Boolean.TRUE);
     }
