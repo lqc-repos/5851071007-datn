@@ -2,7 +2,7 @@ import { Divider } from "@mui/joy";
 
 const Footer = () => {
   return (
-    <div>
+    <div className="hidden">
       <div className="bg-[#333333] pl-1">
         <div className="pt-10">
           <div>

@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+@import "./dateRangePicker.css";
 html {
   scroll-behavior: smooth;
 }

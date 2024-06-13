@@ -14,7 +14,7 @@ import AriclePushlish from "./AriclePushlish";
 
 const NewPost: React.FC = () => {
   const userData: any = usePersonStore((state: any) => state.user);
-  const userStorate = localStorage.getItem('user');
+  const userStorate = localStorage.getItem("user");
   const dataCookie = userStorate && JSON.parse(userStorate);
   const [value, setValue] = useState(0);
   const handleClick = (val: number) => {
@@ -39,9 +39,11 @@ const NewPost: React.FC = () => {
                   <MenuItem onClick={() => handleClick(0)}>
                     <ListItemText>Thông tin chung</ListItemText>
                   </MenuItem>
-                  <MenuItem onClick={() => handleClick(1)}>
-                    <ListItemText>Tạo bài viết mới</ListItemText>
-                  </MenuItem>
+                  {dataCookie?.role?.role !== "Member" && (
+                    <MenuItem onClick={() => handleClick(1)}>
+                      <ListItemText>Tạo bài viết mới</ListItemText>
+                    </MenuItem>
+                  )}
                   <MenuItem onClick={() => handleClick(2)}>
                     <ListItemText>Bài viết đã lưu</ListItemText>
                   </MenuItem>

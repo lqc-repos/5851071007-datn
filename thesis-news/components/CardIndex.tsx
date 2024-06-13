@@ -35,7 +35,7 @@ const CardIndex: React.FC<{
     }
     // thêm localStorage.getItem('user') để test thử việc khi login vào thì chạy lại hàm useEffect
     // nếu có thì setDataCookie lên và sẽ hiện bookmask
-  }, [isDataCookie, localStorage.getItem("user")]);
+  }, [isDataCookie]);
 
   const handleBookmask = async (id: string, type: string) => {
     const memberId = JSON.parse(localStorage.getItem("user") as any);

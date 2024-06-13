@@ -2,7 +2,6 @@ import { Button, Menu, MenuItem } from "@mui/material";
 import React from "react";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Link from "next/link";
-import { usePersonStore } from "@/story";
 import { useRouter } from "next/navigation";
 
 const PopoverCustom: React.FC<{
@@ -10,7 +9,9 @@ const PopoverCustom: React.FC<{
   setIsDataCookie: (e: boolean) => void;
 }> = ({ setDataCookie, setIsDataCookie }) => {
   const router = useRouter();
-  const addUser: any = usePersonStore((state: any) => state.addUser);
+  const userStorate = localStorage.getItem("user");
+  const dataCookie = userStorate && JSON.parse(userStorate);
+
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
   );
@@ -26,7 +27,6 @@ const PopoverCustom: React.FC<{
   const open = Boolean(anchorEl);
 
   const handleLogOut = () => {
-    addUser(false);
     router.push("/");
     localStorage.removeItem("user");
     setDataCookie(null);
@@ -53,6 +53,11 @@ const PopoverCustom: React.FC<{
             "aria-labelledby": "basic-button",
           }}
         >
+          {dataCookie && dataCookie?.role?.role === "Admin" && (
+            <MenuItem onClick={handleClose}>
+              <Link href="/admin/bao-cao-thong-ke">Trang quản trị</Link>
+            </MenuItem>
+          )}
           <MenuItem onClick={handleClose}>
             <Link href="/new-story">Trang cá nhân</Link>
           </MenuItem>

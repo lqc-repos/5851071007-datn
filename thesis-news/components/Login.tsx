@@ -22,7 +22,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { usePersonStore } from "@/story";
 import ForgetPassword from "./ForgetPassword";
 import NewPassword from "./NewPassword";
-import { getCookie, setCookie } from "cookies-next";
 
 interface IFormInputs {
   email: string;
@@ -38,7 +37,6 @@ const schema = yup
 
 const Login: React.FC = () => {
   const addUser: any = usePersonStore((state: any) => state.addUser);
-  const userData: any = usePersonStore((state: any) => state.user);
 
   const [dataCookie, setDataCookie] = useState(null);
   const [isDataCookie, setIsDataCookie] = useState<boolean>(false);
@@ -239,7 +237,7 @@ const Login: React.FC = () => {
                   render={({ field }) => (
                     <FormControl className="w-full mt-6" variant="outlined">
                       <InputLabel htmlFor="outlined-adornment-passwordss">
-                        Password
+                        Mật khẩu
                       </InputLabel>
                       <OutlinedInput
                         {...field}
@@ -260,7 +258,7 @@ const Login: React.FC = () => {
                             </IconButton>
                           </InputAdornment>
                         }
-                        label="Password"
+                        label="Mật khẩu"
                         autoComplete="new-password"
                       />
                     </FormControl>

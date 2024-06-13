@@ -1,19 +1,53 @@
-import clientPromise from '@/lib/mongodb';
-import { NextApiRequest, NextApiResponse } from 'next';
+/* eslint-disable object-curly-newline */
+/* eslint-disable no-shadow */
+import { TableHandle } from '@/components/TableProvider';
+import { Dispatch, RefObject, SetStateAction } from 'react';
 
-export const findPost = async (req: NextApiRequest, res: NextApiResponse) => {
-    try {
-        const client = await clientPromise;
-        const db = client.db('thesis');
-        const posts = await db
-            .collection<any>('article')
-            .find({})
-            .toArray();
-
-        const resp = res.status(200).json(posts);
-        console.log(resp);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
+export const totalAdminStatus = (admin_status_count: any) => {
+    let count = 0;
+    // eslint-disable-next-line no-restricted-syntax, guard-for-in
+    for (const status in admin_status_count) {
+        count += admin_status_count[status];
     }
+    return count;
+};
+
+export const handleGetListUser = async (
+    queries: any,
+    page: number,
+    limit: number,
+    memberId: string,
+    tableRef: RefObject<TableHandle>,
+) => {
+    tableRef?.current?.setLoading(true);
+    const resp: any = await fetch('http://localhost:8080/user/list', {
+        method: "POST",
+        mode: "cors",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ page, size: limit, email: "", memberId }),
+    }).then((result) => result.json()).catch((e) => console.log(e));
+
+    if (resp?.statusCode !== 200) return;
+    if (resp?.statusCode === 200) {
+        const { total, members, page, size } = resp.data;
+        tableRef?.current?.dispatch({
+            limit: size,
+            page,
+            total,
+            data: members,
+        });
+    }
+    tableRef?.current?.setLoading(false);
+};
+
+export function clearList(tableRef: RefObject<TableHandle>) {
+    tableRef?.current?.dispatch({
+        limit: 10,
+        page: 1,
+        total: 0,
+        data: [],
+    });
 }
