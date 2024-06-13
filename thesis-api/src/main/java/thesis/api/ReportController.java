@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import thesis.core.article.repository.ArticleRepository;
+import thesis.core.news.account.Account;
+import thesis.core.news.account.repository.AccountRepository;
 import thesis.core.news.command.CommandReport;
+import thesis.core.news.member.Member;
 import thesis.core.news.member.repository.MemberRepository;
 import thesis.core.news.report.news_report.NewsReport;
 import thesis.core.news.report.news_report.repository.NewsReportRepository;
@@ -36,7 +39,33 @@ public class ReportController {
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
+    private AccountRepository accountRepository;
+    @Autowired
     private ArticleRepository articleRepository;
+
+
+    @RequestMapping(method = RequestMethod.POST, value = "/script_update")
+    public ResponseEntity<ResponseDTO<?>> scriptUpdate(@RequestBody CommandReport command) {
+        long currentTime = System.currentTimeMillis() / 1000L;
+        List<Member> members = memberRepository.find(new Document(), new Document(), new Document());
+        int count = 0;
+        for (Member member : members) {
+            String email = accountRepository
+                    .findOne(new Document("memberId", member.getId().toHexString()), new Document()).map(Account::getEmail)
+                    .orElse(null);
+
+            long newCreatedDate = 1642958880 + new Random().nextInt((int) (currentTime - 1642958880));
+
+            Map<String, Object> updateQuery = new HashMap<>();
+            updateQuery.put("createdDate", newCreatedDate);
+            updateQuery.put("email", email);
+
+            memberRepository.update(new Document("_id", member.getId()), updateQuery);
+
+            System.out.println("--- " + ++count);
+        }
+        return null;
+    }
 
     @RequestMapping(method = RequestMethod.POST, value = "/get")
     public ResponseEntity<ResponseDTO<?>> get(@RequestBody CommandReport command) {
