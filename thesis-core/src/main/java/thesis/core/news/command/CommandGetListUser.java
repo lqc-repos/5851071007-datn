@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CommandGetListUser {
     private String memberId;
-    private String searchEmail;
+    private String keyword;
     @Builder.Default
     private Integer page = 1;
     @Builder.Default

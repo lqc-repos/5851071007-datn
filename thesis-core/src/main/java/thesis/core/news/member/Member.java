@@ -18,6 +18,7 @@ public class Member extends CommonDTO {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
     private String fullName;
+    private String email;
     private String avatar;
     private String roleId;
     private String authorId;

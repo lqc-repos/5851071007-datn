@@ -43,6 +43,8 @@ import thesis.utils.otp.OtpCacheService;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
@@ -478,11 +480,22 @@ public class AccountController {
             Map<String, Object> queryMember = new HashMap<>();
             queryMember.put("roleId", new Document("$ne", DEFAULT_ROLE.ADMIN.getRoleId()));
 
-            Map<String, Object> queryAccount = new HashMap<>();
-            if (StringUtils.isNotBlank(command.getSearchEmail())) {
-                queryAccount.put("email", command.getSearchEmail());
-                Optional<Account> accountOptional = accountRepository.findOne(queryAccount, new Document());
-                accountOptional.ifPresent(account -> queryMember.put("_id", new ObjectId(account.getMemberId())));
+            if (StringUtils.isNotBlank(command.getKeyword())) {
+                Map<String, Object> textSearch = new HashMap<>();
+                Map<String, Object> search = new HashMap<>();
+                search.put("$search", command.getKeyword());
+                textSearch.put("$text", search);
+
+                Map<String, Object> regex = new HashMap<>();
+                regex.put("$regex", Pattern.compile(command.getKeyword(), Pattern.CASE_INSENSITIVE));
+
+                Map<String, Object> queryEmail = new HashMap<>();
+                queryEmail.put("email", regex);
+
+                Map<String, Object> queryName = new HashMap<>();
+                queryName.put("fullName", regex);
+
+                queryMember.put("$or", Arrays.asList(queryEmail, queryName));
             }
 
             Long totalUser = memberRepository.count(new Document(queryMember)).orElse(0L);
@@ -491,12 +504,19 @@ public class AccountController {
                     new Document(),
                     PageHelper.getSkip(command.getPage(), command.getSize()),
                     command.getSize());
-
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
                     .data(UserResponse.builder()
-                            .email(command.getSearchEmail())
-                            .members(members)
+                            .keyword(command.getKeyword())
+                            .members(members.stream().map(mem -> UserResponse.MemberResponse.builder()
+                                    .id(mem.getId().toString())
+                                    .fullName(mem.getFullName())
+                                    .email(mem.getEmail())
+                                    .createdDate(mem.getCreatedDate())
+                                    .role(DEFAULT_ROLE.getRoleById(mem.getRoleId()))
+                                    .roleValue(DEFAULT_ROLE.getRoleNum(mem.getRoleId()))
+                                    .isActive(mem.getIsActive())
+                                    .build()).collect(Collectors.toList()))
                             .page(command.getPage())
                             .size(command.getSize())
                             .total(totalUser)
@@ -558,9 +578,19 @@ public class AccountController {
 
             memberRepository.update(new Document("_id", updateMember.getId()), updateQuery);
 
+            Account account = accountRepository.findOne(new Document("memberId", updateMember.getId().toHexString()), new Document())
+                    .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
+
+            Role role = roleRepository.findOne(new Document("_id", new ObjectId(updateMember.getRoleId())), new Document())
+                    .orElseThrow(() -> new Exception("Quyền người dùng không tồn tại"));
+
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .data(updateMember)
+                    .data(AccountResponse.builder()
+                            .account(account)
+                            .member(updateMember)
+                            .role(role)
+                            .build())
                     .message("Cập nhật thông tin thành công")
                     .build(), HttpStatus.OK);
         } catch (Exception ex) {

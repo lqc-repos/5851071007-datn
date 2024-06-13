@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import thesis.core.news.member.Member;
 import thesis.utils.dto.PaginationDTO;
 
 import java.util.List;
@@ -16,6 +15,20 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 public class UserResponse extends PaginationDTO {
-    private String email;
-    private List<Member> members;
+    private String keyword;
+    private List<MemberResponse> members;
+
+    @AllArgsConstructor
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    public static class MemberResponse {
+        private String id;
+        private String fullName;
+        private String email;
+        private Long createdDate;
+        private String role;
+        private Integer roleValue;
+        private Boolean isActive;
+    }
 }
