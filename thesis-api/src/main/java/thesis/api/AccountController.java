@@ -628,7 +628,7 @@ public class AccountController {
             Member updateMember = memberRepository.findOne(new Document("_id", new ObjectId(command.getUpdateMemberId())), new Document())
                     .orElseThrow(() -> new Exception("Thông tin người dùng không tồn tại"));
 
-            if (command.getRoleLevel() != null || command.getIsBlocked() != null) {
+            if (command.getRoleLevel() != null || command.getIsActive() != null) {
                 Member adminMember = memberRepository.findOne(new Document("_id", new ObjectId(command.getMemberId())), new Document())
                         .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
 
@@ -646,8 +646,8 @@ public class AccountController {
                     updateQuery.put("roleId", updateMember.getRoleId());
                 }
 
-                if (command.getIsBlocked() != null) {
-                    updateMember.setIsActive(!command.getIsBlocked());
+                if (command.getIsActive() != null) {
+                    updateMember.setIsActive(command.getIsActive());
                     updateQuery.put("isActive", updateMember.getIsActive());
                 }
             } else {

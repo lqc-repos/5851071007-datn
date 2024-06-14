@@ -13,6 +13,6 @@ public class CommandUpdateUser {
     private String memberId;
     private String updateMemberId;
     private Integer roleLevel;
-    private Boolean isBlocked;
+    private Boolean isActive;
     private String fullName;
 }
