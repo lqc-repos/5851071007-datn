@@ -52,6 +52,9 @@ public class MailSender {
             case PASSWORD_CHANGED -> {
                 return String.format(MAIL_SENDER_TYPE.PASSWORD_CHANGED.getTemplate(), simpleDateFormat.format(new Date()));
             }
+            case REGISTERED -> {
+                return MAIL_SENDER_TYPE.REGISTERED.getTemplate();
+            }
         }
         return null;
     }

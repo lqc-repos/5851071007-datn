@@ -1,5 +1,7 @@
 package thesis.api;
 
+import jakarta.mail.MessagingException;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -15,8 +17,32 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import thesis.core.article.Article;
 import thesis.core.article.command.CommandCommonQuery;
+import thesis.core.article.model.author.Author;
+import thesis.core.article.model.author.repository.AuthorRepository;
+import thesis.core.article.model.label.custom_label.CustomLabel;
+import thesis.core.article.model.label.custom_label.repository.CustomLabelRepository;
+import thesis.core.article.model.label.loc_label.LOCLabel;
+import thesis.core.article.model.label.loc_label.repository.LOCLabelRepository;
+import thesis.core.article.model.label.nlp_label.NLPLabel;
+import thesis.core.article.model.label.nlp_label.repository.NLPLabelRepository;
+import thesis.core.article.model.label.org_label.ORGLabel;
+import thesis.core.article.model.label.org_label.repository.ORGLabelRepository;
+import thesis.core.article.model.label.per_label.PERLabel;
+import thesis.core.article.model.label.per_label.repository.PERLabelRepository;
+import thesis.core.article.model.location.Location;
+import thesis.core.article.model.location.repository.LocationRepository;
+import thesis.core.article.model.topic.Topic;
+import thesis.core.article.model.topic.repository.TopicRepository;
 import thesis.core.article.repository.ArticleRepository;
 import thesis.core.article.service.ArticleService;
+import thesis.core.configuration.service.ThesisConfigurationService;
+import thesis.core.label_handler.dto.ArticleIdfInfo;
+import thesis.core.label_handler.dto.ArticleWorldInfo;
+import thesis.core.label_handler.model.article_label_frequency.ArticleLabelFrequency;
+import thesis.core.label_handler.model.article_label_frequency.service.ArticleLabelFrequencyService;
+import thesis.core.label_handler.model.total_label_frequency.TotalLabelFrequency;
+import thesis.core.label_handler.model.total_label_frequency.command.CommandQueryTotalLabelFrequency;
+import thesis.core.label_handler.model.total_label_frequency.service.TotalLabelFrequencyService;
 import thesis.core.news.account.Account;
 import thesis.core.news.account.repository.AccountRepository;
 import thesis.core.news.command.*;
@@ -29,7 +55,11 @@ import thesis.core.news.response.OtpResponse;
 import thesis.core.news.response.UserResponse;
 import thesis.core.news.role.Role;
 import thesis.core.news.role.repository.RoleRepository;
+import thesis.core.nlp.dto.AnnotatedWord;
+import thesis.core.nlp.service.NLPService;
+import thesis.core.search_engine.SearchEngine;
 import thesis.core.search_engine.dto.SearchEngineResult;
+import thesis.utils.constant.ConfigurationName;
 import thesis.utils.constant.DEFAULT_ROLE;
 import thesis.utils.constant.MAIL_SENDER_TYPE;
 import thesis.utils.constant.REPORT_TYPE;
@@ -40,14 +70,18 @@ import thesis.utils.mail.CommandMail;
 import thesis.utils.mail.MailSender;
 import thesis.utils.otp.OtpCacheService;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
+@Log4j2
 public class AccountController {
     private static final ZoneOffset ZONE_OFFSET = ZoneOffset.of("+07:00");
 
@@ -67,6 +101,33 @@ public class AccountController {
     private OtpCacheService otpCacheService;
     @Autowired
     private NewsReportRepository newsReportRepository;
+    //nlp process
+    @Autowired
+    private NLPService nlpService;
+    @Autowired
+    private ArticleLabelFrequencyService articleLabelFrequencyService;
+    @Autowired
+    private TotalLabelFrequencyService totalLabelFrequencyService;
+    @Autowired
+    private ThesisConfigurationService thesisConfigurationService;
+    @Autowired
+    private AuthorRepository authorRepository;
+    @Autowired
+    private TopicRepository topicRepository;
+    @Autowired
+    private LocationRepository locationRepository;
+    @Autowired
+    private CustomLabelRepository customLabelRepository;
+    @Autowired
+    private PERLabelRepository perLabelRepository;
+    @Autowired
+    private ORGLabelRepository orgLabelRepository;
+    @Autowired
+    private LOCLabelRepository locLabelRepository;
+    @Autowired
+    private NLPLabelRepository nlpLabelRepository;
+    @Autowired
+    private SearchEngine searchEngine;
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
     public ResponseEntity<ResponseDTO<?>> login(@RequestBody CommandLogin command) {
@@ -128,6 +189,18 @@ public class AccountController {
             Role role = roleRepository.findOne(new Document("_id", new ObjectId(member.getRoleId())), new Document())
                     .orElseThrow(() -> new Exception("Quyền người dùng không tồn tại"));
 
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(CommandMail.builder()
+                            .to(command.getEmail())
+                            .subject("Đăng ký thành công")
+                            .mailSenderType(MAIL_SENDER_TYPE.REGISTERED)
+                            .build());
+                } catch (MessagingException e) {
+                    log.error("Send email is error, email: {}, msg: {}", command.getEmail(), e.getMessage());
+                }
+            });
+
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
                     .data(AccountResponse.builder()
@@ -182,6 +255,9 @@ public class AccountController {
             member.getPublishedArticles().add(article.getId().toHexString());
 
             memberRepository.update(new Document("_id", member.getId()), new Document("publishedArticles", member.getPublishedArticles()));
+
+            // handle nlp
+            CompletableFuture.runAsync(() -> processPostedArticle(article));
 
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
@@ -446,11 +522,19 @@ public class AccountController {
             if (!PasswordHelper.checkPassword(command.getOldPassword(), accountOptional.get().getPassword()))
                 throw new Exception("Mật khẩu không đúng");
             accountRepository.update(new Document("_id", accountOptional.get().getId()), new Document("password", PasswordHelper.hashPassword(command.getPassword())));
-            mailSender.send(CommandMail.builder()
-                    .to(command.getEmail())
-                    .subject("Cập nhật mật khẩu thành công")
-                    .mailSenderType(MAIL_SENDER_TYPE.PASSWORD_CHANGED)
-                    .build());
+
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(CommandMail.builder()
+                            .to(command.getEmail())
+                            .subject("Cập nhật mật khẩu thành công")
+                            .mailSenderType(MAIL_SENDER_TYPE.PASSWORD_CHANGED)
+                            .build());
+                } catch (MessagingException e) {
+                    log.error("Send email is error, email: {}, msg: {}", command.getEmail(), e.getMessage());
+                }
+            });
+
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
                     .data(OtpResponse.builder()
@@ -641,5 +725,241 @@ public class AccountController {
         }
 
         newsReportRepository.update(new Document("_id", newsReport.getId()), new Document("labelCounts", newsReport.getLabelCounts()));
+    }
+
+    private void processPostedArticle(Article article) {
+        try {
+            List<String> NER_TYPES = Arrays.asList("B-PER", "B-ORG", "B-LOC", "I-PER", "I-ORG", "I-LOC");
+
+            Map<String, Long> totalArticleLabels = new HashMap<>();
+            String contentBuilder = article.getTitle().trim() + "\n" +
+                    article.getDescription().trim() + "\n" +
+                    article.getContent().trim();
+            AnnotatedWord annotatedWord = nlpService.annotate(contentBuilder).orElseThrow(() -> new Exception("Annotated word is empty"));
+            Map<String, ArticleWorldInfo> articleWorldInfoMap = new HashMap<>();
+            annotatedWord.getTaggedWords().forEach(taggedWord -> {
+                ArticleWorldInfo worldInfo = articleWorldInfoMap.getOrDefault(taggedWord.getWord(),
+                        ArticleWorldInfo.builder()
+                                .ner(taggedWord.getNer())
+                                .count(0L)
+                                .build());
+                worldInfo.incrementCount();
+                articleWorldInfoMap.put(taggedWord.getWord(), worldInfo);
+            });
+            articleWorldInfoMap.keySet().forEach(key -> {
+                if (!totalArticleLabels.containsKey(key))
+                    totalArticleLabels.put(key, 1L);
+                else
+                    totalArticleLabels.put(key, totalArticleLabels.get(key) + 1);
+            });
+            long totalLabel = articleWorldInfoMap.values().stream().mapToLong(ArticleWorldInfo::getCount).sum();
+            List<ArticleLabelFrequency.LabelPerArticle> labelPerArticles = articleWorldInfoMap.entrySet().stream()
+                    .map(k -> ArticleLabelFrequency.LabelPerArticle.builder()
+                            .label(k.getKey())
+                            .count(k.getValue().getCount())
+                            .ner(k.getValue().getNer())
+                            .build())
+                    .sorted(Comparator.comparing(ArticleLabelFrequency.LabelPerArticle::getCount).reversed())
+                    .toList();
+            ArticleLabelFrequency articleLabelFrequency = ArticleLabelFrequency.builder()
+                    .articleId(article.getId().toString())
+                    .totalLabel(totalLabel)
+                    .labels(labelPerArticles)
+                    .build();
+            articleLabelFrequencyService.add(articleLabelFrequency);
+            totalLabelFrequencyService.increase(totalLabelFrequencyService.getExistedLabel(), totalArticleLabels);
+
+            //todo: author, topic...
+            List<String> authorList = article.getAuthors();
+            if (CollectionUtils.isNotEmpty(authorList)) {
+                for (String authorStr : authorList) {
+                    if (StringUtils.isBlank(authorStr))
+                        continue;
+                    String authorKey = authorStr.toLowerCase().replaceAll(" ", "_");
+                    Author author = authorRepository.findOne(new Document("author", authorKey), new Document())
+                            .or(() -> {
+                                Author authorTemp = Author.builder()
+                                        .author(authorKey)
+                                        .articleIds(new HashSet<>())
+                                        .build();
+                                authorRepository.insert(authorTemp);
+                                return Optional.ofNullable(authorTemp);
+                            }).orElse(null);
+                    author.getArticleIds().add(article.getId().toHexString());
+                    authorRepository.update(new Document("_id", author.getId()), new Document("articleIds", author.getArticleIds()));
+                }
+            }
+            //handle topic
+            List<String> topicList = article.getTopics();
+            if (CollectionUtils.isNotEmpty(topicList)) {
+                for (String topicStr : topicList) {
+                    if (StringUtils.isBlank(topicStr))
+                        continue;
+                    String topicKey = topicStr.toLowerCase().replaceAll(" ", "_");
+                    Topic topic = topicRepository.findOne(new Document("topic", topicKey), new Document())
+                            .or(() -> {
+                                Topic topicTemp = Topic.builder()
+                                        .topic(topicKey)
+                                        .articleIds(new HashSet<>())
+                                        .build();
+                                topicRepository.insert(topicTemp);
+                                return Optional.of(topicTemp);
+                            }).orElse(null);
+                    topic.getArticleIds().add(article.getId().toHexString());
+                    topicRepository.update(new Document("_id", topic.getId()), new Document("articleIds", topic.getArticleIds()));
+                }
+            }
+            //handle location
+            String locationStr = article.getLocation();
+            if (StringUtils.isNotBlank(locationStr)) {
+                String locationKey = locationStr.toLowerCase().replaceAll(" ", "_");
+                Location location = locationRepository.findOne(new Document("location", locationKey), new Document())
+                        .or(() -> {
+                            Location locationTemp = Location.builder()
+                                    .location(locationKey)
+                                    .articleIds(new HashSet<>())
+                                    .build();
+                            locationRepository.insert(locationTemp);
+                            return Optional.of(locationTemp);
+                        }).orElse(null);
+                location.getArticleIds().add(article.getId().toHexString());
+                locationRepository.update(new Document("_id", location.getId()), new Document("articleIds", location.getArticleIds()));
+            }
+            //handle custom labels
+            List<String> customLabelList = article.getLabels();
+            if (CollectionUtils.isNotEmpty(customLabelList)) {
+                for (String customLabelStr : customLabelList) {
+                    if (StringUtils.isBlank(customLabelStr))
+                        continue;
+                    String customLabelKey = customLabelStr.toLowerCase().replaceAll(" ", "_");
+                    CustomLabel customLabel = customLabelRepository.findOne(new Document("label", customLabelKey), new Document())
+                            .or(() -> {
+                                CustomLabel customLabelTemp = CustomLabel.builder()
+                                        .label(customLabelKey)
+                                        .articleIds(new HashSet<>())
+                                        .build();
+                                customLabelRepository.insert(customLabelTemp);
+                                return Optional.of(customLabelTemp);
+                            }).orElse(null);
+                    customLabel.getArticleIds().add(article.getId().toHexString());
+                    customLabelRepository.update(new Document("_id", customLabel.getId()), new Document("articleIds", customLabel.getArticleIds()));
+                }
+            }
+
+            //todo: calculate tf-idf
+            if (articleLabelFrequency.getTotalLabel() <= 0 || CollectionUtils.isEmpty(articleLabelFrequency.getLabels())) {
+                throw new Exception("Total label equals zero or label list is empty");
+            }
+            for (ArticleLabelFrequency.LabelPerArticle labelPerArticle : articleLabelFrequency.getLabels()) {
+                double tf = BigDecimal.valueOf(labelPerArticle.getCount())
+                        .divide(BigDecimal.valueOf(articleLabelFrequency.getTotalLabel()), 20, RoundingMode.CEILING).doubleValue();
+                labelPerArticle.setTf(tf);
+            }
+            articleLabelFrequencyService.updateOne(articleLabelFrequency).orElseThrow();
+
+            //todo: handle org, per,...
+            List<TotalLabelFrequency> totalLabelFrequencies = totalLabelFrequencyService.getMany(CommandQueryTotalLabelFrequency.builder()
+                    .hasProjection(true)
+                    .totalLabelProjection(CommandQueryTotalLabelFrequency.TotalLabelProjection.builder()
+                            .isId(false)
+                            .isLabel(true)
+                            .isCount(true)
+                            .build())
+                    .build());
+            if (CollectionUtils.isEmpty(totalLabelFrequencies))
+                throw new Exception("Existed labels is empty");
+            Map<String, Long> labelWithCountMap = totalLabelFrequencies.stream()
+                    .collect(Collectors.toMap(TotalLabelFrequency::getLabel, TotalLabelFrequency::getCount));
+
+            double eligibleRate = thesisConfigurationService.getByName(ConfigurationName.ELIGIBLE_RATE.getName())
+                    .map(m -> Double.valueOf(m.getValue()))
+                    .orElse(0.05D);
+
+            long totalArticle = articleLabelFrequencyService.count().orElseThrow();
+
+            ArticleIdfInfo articleIdfInfo = ArticleIdfInfo.builder()
+                    .articleId(articleLabelFrequency.getArticleId())
+                    .TfIdfInfos(new ArrayList<>())
+                    .build();
+            for (ArticleLabelFrequency.LabelPerArticle labelPerArticle : articleLabelFrequency.getLabels()) {
+                double idf = Math.log(BigDecimal.valueOf(totalArticle)
+                        .divide(BigDecimal.valueOf(labelWithCountMap.get(labelPerArticle.getLabel())), 20, RoundingMode.CEILING)
+                        .doubleValue());
+                double tfIdf = BigDecimal.valueOf(labelPerArticle.getTf())
+                        .multiply(BigDecimal.valueOf(idf))
+                        .setScale(20, RoundingMode.CEILING).doubleValue();
+                if (tfIdf >= eligibleRate || NER_TYPES.contains(labelPerArticle.getNer())) {
+                    articleIdfInfo.getTfIdfInfos().add(ArticleIdfInfo.TfIdfInfo.builder()
+                            .label(labelPerArticle.getLabel())
+                            .ner(labelPerArticle.getNer())
+                            .tf(labelPerArticle.getTf())
+                            .idf(idf)
+                            .tfIdf(tfIdf)
+                            .build());
+                }
+            }
+            for (ArticleIdfInfo.TfIdfInfo tfIdfInfo : articleIdfInfo.getTfIdfInfos()) {
+                String label = tfIdfInfo.getLabel().toLowerCase().trim();
+                switch (tfIdfInfo.getNer()) {
+                    case "B-PER", "I-PER" -> {
+                        PERLabel perLabel = perLabelRepository.findOne(new Document("label", label), new Document())
+                                .or(() -> {
+                                    PERLabel perLabelTemp = PERLabel.builder()
+                                            .label(label)
+                                            .articleIds(new HashSet<>())
+                                            .build();
+                                    perLabelRepository.insert(perLabelTemp);
+                                    return Optional.of(perLabelTemp);
+                                }).orElse(null);
+                        perLabel.getArticleIds().add(articleIdfInfo.getArticleId());
+                        perLabelRepository.update(new Document("_id", perLabel.getId()), new Document("articleIds", perLabel.getArticleIds()));
+                    }
+                    case "B-ORG", "I-ORG" -> {
+                        ORGLabel orgLabel = orgLabelRepository.findOne(new Document("label", label), new Document())
+                                .or(() -> {
+                                    ORGLabel orgLabelTemp = ORGLabel.builder()
+                                            .label(label)
+                                            .articleIds(new HashSet<>())
+                                            .build();
+                                    orgLabelRepository.insert(orgLabelTemp);
+                                    return Optional.of(orgLabelTemp);
+                                }).orElse(null);
+                        orgLabel.getArticleIds().add(articleIdfInfo.getArticleId());
+                        orgLabelRepository.update(new Document("_id", orgLabel.getId()), new Document("articleIds", orgLabel.getArticleIds()));
+                    }
+                    case "B-LOC", "I-LOC" -> {
+                        LOCLabel locLabel = locLabelRepository.findOne(new Document("label", label), new Document())
+                                .or(() -> {
+                                    LOCLabel locLabelTemp = LOCLabel.builder()
+                                            .label(label)
+                                            .articleIds(new HashSet<>())
+                                            .build();
+                                    locLabelRepository.insert(locLabelTemp);
+                                    return Optional.of(locLabelTemp);
+                                }).orElse(null);
+                        locLabel.getArticleIds().add(articleIdfInfo.getArticleId());
+                        locLabelRepository.update(new Document("_id", locLabel.getId()), new Document("articleIds", locLabel.getArticleIds()));
+                    }
+                    default -> {
+                        NLPLabel nlpLabel = nlpLabelRepository.findOne(new Document("label", label), new Document())
+                                .or(() -> {
+                                    NLPLabel nlpLabelTemp = NLPLabel.builder()
+                                            .label(label)
+                                            .articleIds(new HashSet<>())
+                                            .build();
+                                    nlpLabelRepository.insert(nlpLabelTemp);
+                                    return Optional.of(nlpLabelTemp);
+                                }).orElse(null);
+                        nlpLabel.getArticleIds().add(articleIdfInfo.getArticleId());
+                        nlpLabelRepository.update(new Document("_id", nlpLabel.getId()), new Document("articleIds", nlpLabel.getArticleIds()));
+                    }
+                }
+            }
+            searchEngine.init();
+            log.info("Done annotate new post");
+        } catch (Exception ex) {
+            log.warn("Cannot annotate posted articleId: {}, reason: {}", article.getId().toString(), ex.getMessage());
+        }
+
     }
 }
