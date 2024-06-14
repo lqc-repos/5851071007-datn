@@ -30,7 +30,7 @@ public class CrawledArticleServiceImp implements CrawledArticleService {
         if (command.getIsDescPublicationDate() != null)
             sort.put("publicationDate", command.getIsDescPublicationDate() ? -1 : 1);
         Map<String, Object> query = new HashMap<>();
-//        query.put("images", new Document("$exists", false));
+        query.put("images", new Document("$exists", false));
         return crawledArticleRepository.find(query, sort, (command.getPage() - 1) * command.getSize(), command.getSize());
     }
 

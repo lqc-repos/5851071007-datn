@@ -110,8 +110,10 @@ public class AccountController {
                 throw new Exception("Email đã tồn tại, vui lòng thử email khác");
 
             Member member = Member.builder()
-                    .fullName("Chưa đặt tên")
+                    .fullName(command.getEmail().split("@")[0])
                     .roleId(DEFAULT_ROLE.MEMBER.getRoleId())
+                    .isActive(true)
+                    .email(command.getEmail())
                     .build();
             memberRepository.insert(member);
 

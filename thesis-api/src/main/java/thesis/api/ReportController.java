@@ -1,5 +1,6 @@
 package thesis.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.AggregateIterable;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -40,7 +41,8 @@ public class ReportController {
     private AccountRepository accountRepository;
     @Autowired
     private ArticleRepository articleRepository;
-
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @RequestMapping(method = RequestMethod.POST, value = "/script_update")
     public ResponseEntity<ResponseDTO<?>> scriptUpdate(@RequestBody CommandReport command) {
@@ -132,7 +134,7 @@ public class ReportController {
                     case PUBLISH ->
                             aggregateResult = articleRepository.getMongoDBOperation().aggregateSpecial(Arrays.asList(
                                     new Document("$match", new Document("isDeleted", false)
-                                            .append("createdDate", new Document("$gte", startOfDay).append("$lte", endOfDay))),
+                                            .append("publicationDate", new Document("$gte", startOfDay).append("$lte", endOfDay))),
                                     new Document("$group", new Document("_id", new Document("year", new Document("$year", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000)))))
                                             .append("month", new Document("$month", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000)))))
                                             .append("day", new Document("$dayOfMonth", new Document("$toDate", new Document("$multiply", Arrays.asList("$publicationDate", 1000))))))
