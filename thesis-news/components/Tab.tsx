@@ -39,14 +39,14 @@ const TabCustom: React.FC<TabCustomProps> = ({ w }) => {
       >
         <Tab label="Tìm kiếm" />
         <Tab label="Thời sự" />
-        <Tab label="Góc nhìn" />
+        <Tab label="Pháp luật" />
         <Tab label="Thế giới" />
         <Tab label="Kinh doanh" />
         <Tab label="Bất động sản" />
         <Tab label="Khoa học" />
         <Tab label="Giải trí" />
         <Tab label="Thể thao" />
-        <Tab label="Pháp luật" />
+        <Tab label="Góc nhìn" />
         <Tab label="Giáo dục" />
         <Tab label="Sức khỏe" />
         <Tab label="Đời sống" />
@@ -59,14 +59,14 @@ const TabCustom: React.FC<TabCustomProps> = ({ w }) => {
       <div className="px-10">
         {value === 0 && <Search />}
         {value === 1 && <CardCustom topic="Thời sự" />}
-        {value === 2 && <CardCustom topic="Góc nhìn" />}
+        {value === 2 && <CardCustom topic="Pháp luật" />}
         {value === 3 && <CardCustom topic="Thế giới" />}
         {value === 4 && <CardCustom topic="Kinh doanh" />}
         {value === 5 && <CardCustom topic="Bất động sản" />}
         {value === 6 && <CardCustom topic="Khoa học" />}
         {value === 7 && <CardCustom topic="Giải trí" />}
         {value === 8 && <CardCustom topic="Thể thao" />}
-        {value === 9 && <CardCustom topic="Pháp luật" />}
+        {value === 9 && <CardCustom topic="Góc nhìn" />}
         {value === 10 && <CardCustom topic="Giáo dục" />}
         {value === 11 && <CardCustom topic="Sức khỏe" />}
         {value === 12 && <CardCustom topic="Đời sống" />}

@@ -49,6 +49,13 @@ const Search: React.FC = () => {
     getData(data);
   });
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      onSubmit();
+    }
+  };
+
   const handleChange = (_event: React.ChangeEvent<unknown>, valuePage: number) => {
     setPage(valuePage);
     getData(value);
@@ -79,6 +86,7 @@ const Search: React.FC = () => {
               placeholder="Search"
               inputProps={{ "aria-label": "search google maps" }}
               {...field}
+              onKeyDown={handleKeyDown}
             />
           )}
         />

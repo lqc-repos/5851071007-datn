@@ -34,16 +34,15 @@ const HightRate: React.FC<{ isStyle?: string }> = ({ isStyle = false }) => {
   return (
     <div className="flex-auto block">
       <div className="mt-10 block">
-        <div className="mb-5 block">Bài viết liên quan</div>
+        <div className="mb-5 block">Bài viết ngẫu nhiên</div>
         {data.length > 0 &&
           data.map((el: any) => (
             <article key={el.id || Math.floor(Math.random() * 1000)}>
               <div className="box-content mr-auto ml-auto block">
                 <div className="justify-center flex ">
                   <div
-                    className={`lg:max-w-[680px] mx-6 min-w-0 w-full ${
-                      isStyle ? "ml-0" : ""
-                    }`}
+                    className={`lg:max-w-[680px] mx-6 min-w-0 w-full ${isStyle ? "ml-0" : ""
+                      }`}
                   >
                     <div className="w-full h-full">
                       <div className="block">
