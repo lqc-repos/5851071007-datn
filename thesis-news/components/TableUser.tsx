@@ -7,6 +7,7 @@ import UserColumn from "@/constant/column";
 const OrderTable = (props: OrderTableProps) => {
   const { onChangePage, onChangeLimit } = props;
   const { data: rows, total, limit, page, loading } = UseTableContext();
+  console.log(rows);
   const formattedRows = useMemo(
     () =>
       rows.map((row, index) => {

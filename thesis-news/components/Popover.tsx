@@ -58,9 +58,11 @@ const PopoverCustom: React.FC<{
               <Link href="/admin/bao-cao-thong-ke">Trang quản trị</Link>
             </MenuItem>
           )}
-          <MenuItem onClick={handleClose}>
-            <Link href="/new-story">Trang cá nhân</Link>
-          </MenuItem>
+          {dataCookie && dataCookie?.role?.role !== "Admin" && (
+            <MenuItem onClick={handleClose}>
+              <Link href="/new-story">Trang cá nhân</Link>
+            </MenuItem>
+          )}
           <MenuItem onClick={() => handleLogOut()}>Đăng xuất</MenuItem>
         </Menu>
       </div>

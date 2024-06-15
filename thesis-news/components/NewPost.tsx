@@ -3,23 +3,37 @@ import { Avatar } from "@mui/material";
 import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemText from "@mui/material/ListItemText";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Divider } from "@mui/joy";
 import Infomation from "./Infomation";
 import ArticleSave from "./ArticleSave";
 import ArticleSee from "./AricleSee";
 import CreatePost from "./CreatePost";
-import { usePersonStore } from "@/story";
 import AriclePushlish from "./AriclePushlish";
 
 const NewPost: React.FC = () => {
-  const userData: any = usePersonStore((state: any) => state.user);
-  const userStorate = localStorage.getItem("user");
-  const dataCookie = userStorate && JSON.parse(userStorate);
+  const [dataCookie, setDataCookie] = useState<any>(null);
   const [value, setValue] = useState(0);
   const handleClick = (val: number) => {
     setValue(val);
   };
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userStorate = localStorage.getItem("user");
+      if (userStorate) {
+        try {
+          setDataCookie(JSON.parse(userStorate));
+        } catch (error) {
+          console.error(
+            "Lỗi khi phân tích dữ liệu JSON từ localStorage:",
+            error
+          );
+          setDataCookie(null);
+        }
+      }
+    }
+  }, []);
+  console.log(dataCookie);
   return (
     <div>
       <div className="max-w-[1336px] m-auto block mt-10">
@@ -27,10 +41,18 @@ const NewPost: React.FC = () => {
           <div className="flex-auto block md:min-w-[328px] md:max-w-[328px]">
             <div className="border-solid border-[1px] border-[#bdbdbd] rounded-lg">
               <div className="flex items-center flex-col py-5">
-                <Avatar sx={{ width: 80, height: 80 }}>H</Avatar>
-                {dataCookie?.role?.role === "Admin" && <span>Quản trị</span>}
-                {dataCookie?.role?.role === "Author" && <span>Tác giả</span>}
-                {dataCookie?.role?.role === "Member" && <span>Thành viên</span>}
+                <Avatar sx={{ width: 80, height: 80 }}>
+                  {dataCookie && dataCookie?.member?.fullName.charAt(0).toUpperCase()}
+                </Avatar>
+                {dataCookie && dataCookie?.role?.role === "Admin" && (
+                  <span>Quản trị</span>
+                )}
+                {dataCookie && dataCookie?.role?.role === "Author" && (
+                  <span>Tác giả</span>
+                )}
+                {dataCookie && dataCookie?.role?.role === "Member" && (
+                  <span>Thành viên</span>
+                )}
                 <span></span>
               </div>
               <Divider component="li" />
@@ -39,7 +61,7 @@ const NewPost: React.FC = () => {
                   <MenuItem onClick={() => handleClick(0)}>
                     <ListItemText>Thông tin chung</ListItemText>
                   </MenuItem>
-                  {dataCookie?.role?.role !== "Member" && (
+                  {dataCookie && dataCookie?.role?.role !== "Member" && (
                     <MenuItem onClick={() => handleClick(1)}>
                       <ListItemText>Tạo bài viết mới</ListItemText>
                     </MenuItem>
@@ -50,7 +72,7 @@ const NewPost: React.FC = () => {
                   <MenuItem onClick={() => handleClick(3)}>
                     <ListItemText>Bài viết đã xem</ListItemText>
                   </MenuItem>
-                  {dataCookie?.role?.role !== "Member" && (
+                  {dataCookie && dataCookie?.role?.role !== "Member" && (
                     <MenuItem onClick={() => handleClick(4)}>
                       <ListItemText>Bài viết đã tạo</ListItemText>
                     </MenuItem>
@@ -69,8 +91,8 @@ const NewPost: React.FC = () => {
                     style={{ minHeight: "calc(-57px + 100vh)" }}
                   >
                     <Infomation
-                      name={dataCookie?.member?.fullName}
-                      email={dataCookie?.account?.email}
+                      name={dataCookie && dataCookie?.member?.fullName}
+                      email={dataCookie && dataCookie?.account?.email}
                     />
                   </div>
                 )}

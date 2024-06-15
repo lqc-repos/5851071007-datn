@@ -1,4 +1,4 @@
-import { CircleUser, DashBoard } from "@/public/admin";
+import { CircleUser, DashBoard, SwalErrorIcon, SwalSuccessIcon, SwalWarningIcon } from "@/public/admin";
 import { MenuItemProps } from "@/types/newpost";
 import moment from "moment";
 
@@ -57,7 +57,7 @@ export const Menus: MenuItemProps[] = [
     {
         path: PATH.My_ACCOUNT,
         Icon: CircleUser,
-        label: 'Tài khoản của tôi',
+        label: 'Quản lý tài khoản',
         type: MenuTypes.ROUTER,
         role: Roles.ADMIN_MY_ACCOUNT,
         childrens: [],
@@ -82,6 +82,12 @@ export const rangeDateByDays = (toDate: string, fromDate: string, format?: strin
         }
     }
     return result;
+};
+
+export const mappingType = {
+    success: SwalSuccessIcon,
+    warning: SwalWarningIcon,
+    error: SwalErrorIcon,
 };
 
 export const ROLE: any = [

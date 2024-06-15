@@ -49,7 +49,7 @@ const Search: React.FC = () => {
     getData(data);
   });
 
-  const handleChange = (event: React.ChangeEvent<unknown>, valuePage: number) => {
+  const handleChange = (_event: React.ChangeEvent<unknown>, valuePage: number) => {
     setPage(valuePage);
     getData(value);
   };

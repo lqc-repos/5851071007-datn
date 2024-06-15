@@ -1,7 +1,7 @@
-import DateCustom from "@/components/Date";
 import Header from "@/components/Header";
 import HightRate from "@/components/HightRate";
 import TabCustom from "@/components/Tab";
+import { ToastContainer } from "react-toastify";
 
 export default function Home() {
   return (

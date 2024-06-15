@@ -638,15 +638,15 @@ public class AccountController {
                 if (!role.getNumberValue().equals(DEFAULT_ROLE.ADMIN.getNumberValue()))
                     throw new Exception("Người dùng không có quyền");
 
+                if (StringUtils.isBlank(command.getType()))
+                    throw new Exception("Type không hợp lệ");
 
-                if (command.getRoleLevel() != null) {
-                    if (Objects.equals(DEFAULT_ROLE.getRoleIdByNumberValue(command.getRoleLevel()), updateMember.getRoleId()))
-                        throw new Exception("Cập nhật quyền không thành công");
+                if ("role".equals(command.getType()) && command.getRoleLevel() != null) {
                     updateMember.setRoleId(DEFAULT_ROLE.getRoleIdByNumberValue(command.getRoleLevel()));
                     updateQuery.put("roleId", updateMember.getRoleId());
                 }
 
-                if (command.getIsActive() != null) {
+                if ("status".equals(command.getType()) && command.getIsActive() != null) {
                     updateMember.setIsActive(command.getIsActive());
                     updateQuery.put("isActive", updateMember.getIsActive());
                 }

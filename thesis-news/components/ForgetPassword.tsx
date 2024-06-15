@@ -1,3 +1,4 @@
+import { adminNotify, notifyType } from "@/lib/format";
 import { Button, TextField } from "@mui/material";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -9,9 +10,7 @@ interface IFormInputs {
 
 const ForgetPassword: React.FC<{
   handleChangeNewPassword: (e: string) => void;
-  setOpenNoti: (e: boolean) => void;
-  setMessage: (e: string) => void;
-}> = ({ handleChangeNewPassword, setMessage, setOpenNoti }) => {
+}> = ({ handleChangeNewPassword}) => {
   const { handleSubmit, control } = useForm<IFormInputs>({
     defaultValues: {
       email: "",
@@ -35,14 +34,12 @@ const ForgetPassword: React.FC<{
       .catch((e) => console.log(e));
 
     if (resp?.statusCode !== 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.ERROR);
       return;
     }
 
     if (resp?.statusCode === 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.SUCCESS);
       return true;
     }
   };
@@ -69,12 +66,10 @@ const ForgetPassword: React.FC<{
       .catch((e) => console.log(e));
 
     if (resp.statusCode !== 200) {
-      setOpenNoti(true);
-      setMessage(resp.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.ERROR);
     }
     if (resp.statusCode === 200) {
-      setOpenNoti(true);
-      setMessage(resp.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.SUCCESS);
       handleChangeNewPassword(data.email);
       return;
     }

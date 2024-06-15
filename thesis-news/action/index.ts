@@ -27,7 +27,7 @@ export const handleGetListUser = async (
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ page, size: limit, email: "", memberId }),
+        body: JSON.stringify({ page, size: limit, email: "", memberId, keyword: queries }),
     }).then((result) => result.json()).catch((e) => console.log(e));
 
     if (resp?.statusCode !== 200) return;

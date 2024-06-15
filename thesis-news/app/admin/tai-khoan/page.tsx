@@ -2,11 +2,12 @@
 import TableProvider, { TableHandle } from "@/components/TableProvider";
 import OrderTable from "@/components/TableUser";
 import { Box, IconButton, InputBase, Paper } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import SearchIcon from "@mui/icons-material/Search";
 import { useSearchParams, useRouter } from "next/navigation";
 import { handleGetListUser } from "@/action";
+import { debounce } from "lodash";
 
 const AdminAccount: React.FC = () => {
   const searchParams = useSearchParams();
@@ -25,10 +26,13 @@ const AdminAccount: React.FC = () => {
     ? Number(searchParams?.get("list_limit"))
     : 10;
 
+  const query = searchParams?.get("keyword")
+    ? searchParams?.get("keyword")
+    : "";
   const handleGetData = () => {
     const memberId =
       JSON.parse(localStorage.getItem("user") as any)?.member?.id || "";
-    handleGetListUser("", page, limit, memberId, tableRef);
+    handleGetListUser(query, page, limit, memberId, tableRef);
   };
 
   const handleChangePage = (newPage: number) => {
@@ -41,9 +45,21 @@ const AdminAccount: React.FC = () => {
     router.push(`/admin/tai-khoan/?list_limit=${limit}&list_page=${page}`);
   };
 
+  const handleSearch = (searchTerm: string) => {
+    router.push(
+      `/admin/tai-khoan/?list_limit=${limit}&list_page=${page}&keyword=${searchTerm}`
+    );
+    setValue("search", searchTerm.trim());
+  };
+
+  const handleSearchDebounce = useMemo(
+    () => debounce(handleSearch, 500),
+    [limit]
+  );
+
   useEffect(() => {
     handleGetData();
-  }, [page, limit]);
+  }, [getValues("search"), page, limit]);
 
   return (
     <div className="flex flex-col h-full">
@@ -70,13 +86,15 @@ const AdminAccount: React.FC = () => {
                   sx={{ ml: 1, flex: 1 }}
                   placeholder="Search"
                   inputProps={{ "aria-label": "search google maps" }}
-                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    handleSearchDebounce(e.target.value.trim());
+                  }}
                 />
                 <IconButton
                   type="button"
                   sx={{ p: "10px" }}
                   aria-label="search"
-                  // onClick={onSubmit}
                 >
                   <SearchIcon />
                 </IconButton>

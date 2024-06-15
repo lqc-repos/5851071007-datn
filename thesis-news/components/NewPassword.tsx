@@ -11,6 +11,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import React from "react";
+import { adminNotify, notifyType } from "@/lib/format";
 
 interface IFormInputs {
   password: string;
@@ -24,10 +25,8 @@ const schema = yup
 
 const NewPassword: React.FC<{
   handleBack: () => void;
-  setOpenNoti: (e: boolean) => void;
-  setMessage: (e: string) => void;
   emailNewPassword: string;
-}> = ({ handleBack, setMessage, setOpenNoti, emailNewPassword }) => {
+}> = ({ handleBack, emailNewPassword }) => {
   const {
     handleSubmit,
     control,
@@ -57,12 +56,10 @@ const NewPassword: React.FC<{
       .catch((e) => console.log(e));
 
     if (resp.statusCode !== 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.ERROR);
       return;
     }
-    setOpenNoti(true);
-    setMessage(resp?.message || resp?.data?.message);
+    adminNotify(resp?.message || resp?.data?.message, notifyType.SUCCESS);
     handleBack();
   };
 

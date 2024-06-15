@@ -16,12 +16,13 @@ import {
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import PopoverCustom from "./Popover";
-import Notification from "./Notification";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { usePersonStore } from "@/story";
 import ForgetPassword from "./ForgetPassword";
 import NewPassword from "./NewPassword";
+import { adminNotify, notifyType } from "@/lib/format";
+import { toast } from "react-toastify";
 
 interface IFormInputs {
   email: string;
@@ -72,8 +73,6 @@ const Login: React.FC = () => {
   });
 
   const [open, setOpen] = useState(false);
-  const [openNoti, setOpenNoti] = useState(false);
-  const [message, setMessage] = useState("");
   const [title, setTitle] = useState("Đăng nhập");
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(0);
@@ -110,8 +109,7 @@ const Login: React.FC = () => {
         .then((data) => data.json())
         .catch((e) => console.log(e));
       if (resp?.statusCode !== 200) {
-        setOpenNoti(true);
-        setMessage(resp?.message);
+        adminNotify(resp?.message, notifyType.ERROR);
         return;
       }
       if (typeof window !== "undefined") {
@@ -119,8 +117,7 @@ const Login: React.FC = () => {
       }
       setIsDataCookie(true);
       addUser(resp.data);
-      setOpenNoti(true);
-      setMessage("Đăng nhập thành công");
+      adminNotify("Đăng nhập thành công", notifyType.SUCCESS);
       handleClose();
     }
     if (title === "Đăng ký") {
@@ -136,8 +133,7 @@ const Login: React.FC = () => {
         .then((data) => data.json())
         .catch((e) => console.log(e));
       if (resp?.statusCode !== 200) {
-        setOpenNoti(true);
-        setMessage(resp?.message);
+        adminNotify(resp?.message, notifyType.ERROR);
         return;
       }
       if (typeof window !== "undefined") {
@@ -145,15 +141,9 @@ const Login: React.FC = () => {
       }
       setIsDataCookie(true);
       addUser(resp?.data);
-      setOpenNoti(true);
-      setMessage("Đăng ký thành công");
+      adminNotify("Đăng ký thành công", notifyType.SUCCESS);
       handleClose();
     }
-  };
-
-  const handleCloseNoti = () => {
-    setOpenNoti(false);
-    setMessage("");
   };
 
   const handleForgetPassword = async () => {
@@ -174,11 +164,6 @@ const Login: React.FC = () => {
 
   return (
     <div>
-      <Notification
-        open={openNoti}
-        handleCloseNoti={handleCloseNoti}
-        message={message}
-      />
       {dataCookie ? (
         <PopoverCustom
           setDataCookie={(e: any) => setDataCookie(e)}
@@ -202,15 +187,11 @@ const Login: React.FC = () => {
               handleChangeNewPassword={(e: string) =>
                 handleChangeNewPassword(e)
               }
-              setOpenNoti={(e: boolean) => setOpenNoti(e)}
-              setMessage={(e: string) => setMessage(e)}
             />
           )}
           {step === 2 && (
             <NewPassword
               handleBack={handleBack}
-              setOpenNoti={(e: boolean) => setOpenNoti(e)}
-              setMessage={(e: string) => setMessage(e)}
               emailNewPassword={emailNewPassword}
             />
           )}

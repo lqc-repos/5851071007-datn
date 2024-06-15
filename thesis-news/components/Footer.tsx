@@ -1,8 +1,11 @@
+'use client';
 import { Divider } from "@mui/joy";
+import { usePathname } from "next/navigation";
 
 const Footer = () => {
+  const pathname = usePathname();
   return (
-    <div className="hidden">
+    <div className={pathname?.includes('/admin') ? "hidden" : ""}>
       <div className="bg-[#333333] pl-1">
         <div className="pt-10">
           <div>

@@ -20,7 +20,7 @@ const options: any = {
 const datasets: any = [
   {
       id: 1,
-      label: "Người dùng",
+      label: "Bài đăng mới",
       data: [0],
       borderColor: "rgb(53, 162, 235)",
       backgroundColor: "rgba(53, 162, 235, 0.5)",
@@ -58,6 +58,8 @@ const NewUserChart = ({ className = "", setTotalRegiter }: UserChartProps) => {
 
   const handleChangeDateRange = async (rangeValues: [string, string]) => {
     dataChart.datasets = datasets;
+    const fromDate = moment(rangeValues[0]).format("MM/DD/YYYY");
+    const toDate = moment(rangeValues[1]).format("MM/DD/YYYY");
     const newToDate = moment(rangeValues[1]).format(formatDateRequest);
     const newDataLabels = showDataLabels(rangeValues[0], rangeValues[1]);
     const mapDataLabels = rangeDateByDays(
@@ -75,16 +77,16 @@ const NewUserChart = ({ className = "", setTotalRegiter }: UserChartProps) => {
       },
       body: JSON.stringify({
         reportType: "publish",
-        fromDate: moment(rangeValues[0], "MM/DD/YYYY").valueOf() / 1000,
-        toDate: moment(rangeValues[1], "MM/DD/YYYY").valueOf() / 1000,
+        fromDate: moment(fromDate, "MM/DD/YYYY").valueOf() / 1000,
+        toDate: moment(toDate, "MM/DD/YYYY").valueOf() / 1000,
       }),
     })
       .then((result) => result.json())
       .catch((e) => console.log(e));
 
-    if (dataTracking) {
+    if (dataTracking && dataTracking?.data?.reports?.length > 0) {
       const dataset = mapDataLabels.map((label) => {
-        const isExisted = dataTracking.data.reports.find(
+        const isExisted = dataTracking?.data?.reports?.find(
           (tracking: any) => tracking.key === label
         );
         return isExisted?.value || 0;

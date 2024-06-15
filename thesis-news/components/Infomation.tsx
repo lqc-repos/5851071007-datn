@@ -12,8 +12,8 @@ import {
   TextField,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import Notification from "./Notification";
 import CancelIcon from "@mui/icons-material/Cancel";
+import { adminNotify, notifyType } from "@/lib/format";
 
 const Infomation: React.FC<{ name: string; email: string }> = ({
   name,
@@ -35,8 +35,6 @@ const Infomation: React.FC<{ name: string; email: string }> = ({
   const [isName, setIsName] = useState(false);
   const [isPassword, setIsPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [openNoti, setOpenNoti] = useState(false);
-  const [message, setMessage] = useState("");
 
   const handleChangeName = (val: boolean) => {
     setIsName(val);
@@ -66,14 +64,12 @@ const Infomation: React.FC<{ name: string; email: string }> = ({
       .catch((e) => console.log(e));
 
     if (resp?.statusCode !== 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.ERROR);
     }
     if (resp?.statusCode === 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.SUCCESS);
       setDataName(resp?.data?.member?.fullName);
-      localStorage.setItem('user', JSON.stringify(resp?.data))
+      localStorage.setItem("user", JSON.stringify(resp?.data));
     }
     setIsName(false);
     reset();
@@ -98,34 +94,24 @@ const Infomation: React.FC<{ name: string; email: string }> = ({
       .catch((e) => console.log(e));
 
     if (resp?.statusCode !== 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.ERROR);
     }
     if (resp?.statusCode === 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      console.log(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.SUCCESS);
     }
     setIsPassword(false);
     reset();
   });
-  const handleCloseNoti = () => {
-    setOpenNoti(false);
-    setMessage("");
-  };
 
   return (
     <div>
-      <Notification
-        open={openNoti}
-        handleCloseNoti={handleCloseNoti}
-        message={message}
-      />
       <div className="block">
         <div className="flex flex-col">
           <div className="mb-4">
             <h1 className="font-bold text-2xl">Thông tin tài khoản</h1>
           </div>
-          {dataName && (
+          {name && (
             <>
               <div className="flex flex-col mb-2">
                 <div className="flex justify-between">
@@ -156,7 +142,7 @@ const Infomation: React.FC<{ name: string; email: string }> = ({
                     )}
                   />
                 ) : (
-                  <span>{dataName || ""}</span>
+                  <span>{dataName || name || ""}</span>
                 )}
               </div>
               <Divider component="li" className="my-4 mb-2" />

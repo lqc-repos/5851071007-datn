@@ -7,9 +7,8 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import Notification from "./Notification";
-import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { adminNotify, notifyType } from "@/lib/format";
 
 interface IFormInput {
   title: string;
@@ -28,8 +27,6 @@ const CreatePost: React.FC = () => {
       topic: "",
     },
   });
-  const [openNoti, setOpenNoti] = useState(false);
-  const [message, setMessage] = useState("");
 
   const onSubmit = handleSubmit(async (data) => {
     const memberId = JSON.parse(localStorage.getItem("user") as any);
@@ -50,27 +47,16 @@ const CreatePost: React.FC = () => {
       .catch((e) => console.log(e));
 
     if (resp.statusCode !== 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message);
+      adminNotify(resp?.message, notifyType.ERROR);
     }
     if (resp.statusCode === 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message);
+      adminNotify(resp?.message, notifyType.SUCCESS);
       reset();
     }
   });
-  const handleCloseNoti = () => {
-    setOpenNoti(false);
-    setMessage("");
-  };
 
   return (
     <>
-      <Notification
-        open={openNoti}
-        handleCloseNoti={handleCloseNoti}
-        message={message}
-      />
       <div className="block">
         <div className="flex flex-col">
           <div className="mb-4">

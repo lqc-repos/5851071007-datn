@@ -15,4 +15,5 @@ public class CommandUpdateUser {
     private Integer roleLevel;
     private Boolean isActive;
     private String fullName;
+    private String type;
 }

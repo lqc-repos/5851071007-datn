@@ -4,7 +4,6 @@ import CardCustom from "./Card";
 import { usePersonStore } from "@/story";
 import CardIndex from "./CardIndex";
 import { Box, CircularProgress, Pagination } from "@mui/material";
-import { getCookie } from 'cookies-next';
 
 const AriclePushlish: React.FC = () => {
   const userData: any = usePersonStore((state: any) => state.user);

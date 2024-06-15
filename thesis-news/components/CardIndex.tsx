@@ -1,4 +1,4 @@
-import { formatDate, formatDateHourMinute } from "@/lib/format";
+import { adminNotify, formatDate, formatDateHourMinute, notifyType } from "@/lib/format";
 import { Divider } from "@mui/joy";
 import { Chip } from "@mui/material";
 import Image from "next/image";
@@ -6,7 +6,6 @@ import Link from "next/link";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import { useEffect, useState } from "react";
-import Notification from "./Notification";
 
 const CardIndex: React.FC<{
   data: [] | never[];
@@ -14,8 +13,6 @@ const CardIndex: React.FC<{
   handleRefresh?: () => void;
 }> = ({ data, isStyle = false, handleRefresh }) => {
   const [dataCookie, setDataCookie] = useState<null | any>(null);
-  const [openNoti, setOpenNoti] = useState(false);
-  const [message, setMessage] = useState("");
   const [isDataCookie, setIsDataCookie] = useState<boolean>(false);
 
   useEffect(() => {
@@ -56,13 +53,11 @@ const CardIndex: React.FC<{
       .catch((e) => console.log(e));
 
     if (resp?.statusCode !== 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.ERROR);
     }
 
     if (resp?.statusCode === 200) {
-      setOpenNoti(true);
-      setMessage(resp?.message || resp?.data?.message);
+      adminNotify(resp?.message || resp?.data?.message, notifyType.SUCCESS);
       localStorage.setItem("user", JSON.stringify(resp?.data));
       setIsDataCookie(!isDataCookie);
       
@@ -76,18 +71,8 @@ const CardIndex: React.FC<{
     }
   };
 
-  const handleCloseNoti = () => {
-    setOpenNoti(false);
-    setMessage("");
-  };
-
   return (
     <>
-      <Notification
-        open={openNoti}
-        handleCloseNoti={handleCloseNoti}
-        message={message}
-      />
       <div className={`${isStyle ? "" : "pt-8"} block`}>
         <div>
           <div
