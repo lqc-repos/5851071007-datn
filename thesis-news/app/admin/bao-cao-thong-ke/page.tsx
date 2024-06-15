@@ -36,7 +36,7 @@ const ReportChart: React.FC = () => {
           }}
         >
           <Tab label="Tài khoản và người dùng" />
-          <Tab label="Nhãn" />
+          <Tab label="Từ khóa tìm kiếm" />
         </Tabs>
         {value === 0 && (
           <Grid
@@ -91,7 +91,7 @@ const ReportChart: React.FC = () => {
             }}
           >
             <Grid item xs={12} md={12} alignItems="center">
-              <General title="TỔNG NHÃN" total={totalUser} />
+              <General title="TỔNG TỪ KHÓA TÌM KIẾM" total={totalUser} />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
               <div

@@ -307,6 +307,7 @@ public class AccountController {
                     if (!member.getSavedArticles().remove(article.getId().toHexString()))
                         throw new Exception("Không thể gỡ bài viết hoặc bài viết không tồn tại trong danh sách đã lưu");
                     memberRepository.update(new Document("_id", member.getId()), new Document("savedArticles", member.getSavedArticles()));
+                    message = "Đã bỏ lưu bài viết";
                 }
                 case "view" -> {
                     if (!member.getSavedArticles().contains(article.getId().toString())) {
