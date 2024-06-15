@@ -2,8 +2,7 @@ import { mappingType } from '@/constant';
 import { toast } from 'react-toastify';
 
 export const formatDate = (time: any) => {
-
-    const date = new Date(time).toLocaleDateString('vi-VN');;
+    const date = new Date(time).toLocaleDateString('vi-VN');
     return date;
 }
 
@@ -57,6 +56,7 @@ const adminNotify = (message: string, type: 'success' | 'warning' | 'error', opt
                 backgroundColor: 'white',
                 color: 'black',
             },
+            position: "bottom-right",
             ...option,
         }); break;
         case 'error': toast.error(message, {
@@ -66,6 +66,7 @@ const adminNotify = (message: string, type: 'success' | 'warning' | 'error', opt
                 backgroundColor: 'white',
                 color: 'black',
             },
+            position: "bottom-right",
             ...option,
         }); break;
         case 'warning': toast.warning(message, {
@@ -75,6 +76,7 @@ const adminNotify = (message: string, type: 'success' | 'warning' | 'error', opt
                 backgroundColor: 'white',
                 color: 'black',
             },
+            position: "bottom-right",
             ...option,
         }); break;
         default: break;
@@ -86,16 +88,19 @@ const notify = (message: string, type: 'success' | 'warning' | 'error', option: 
         case 'success': toast.success(message, {
             icon: mappingType[type],
             autoClose,
+            position: "bottom-right",
             ...option,
         }); break;
         case 'error': toast.error(message, {
             icon: mappingType[type],
             autoClose,
+            position: "bottom-right",
             ...option,
         }); break;
         case 'warning': toast.warning(message, {
             icon: mappingType[type],
             autoClose,
+            position: "bottom-right",
             ...option,
         }); break;
         default: break;

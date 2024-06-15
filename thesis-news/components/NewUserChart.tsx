@@ -7,6 +7,7 @@ import { UserChartProps } from "@/types/newpost";
 import { TableHandle } from "./TableProvider";
 import HeaderChart, { showDataLabels } from "./HeaderChart";
 import LineChart from "./LineChart";
+import { adminNotify, notifyType } from "@/lib/format";
 
 const options: any = {
   scales: {
@@ -19,11 +20,11 @@ const options: any = {
 
 const datasets: any = [
   {
-      id: 1,
-      label: "Bài đăng mới",
-      data: [0],
-      borderColor: "rgb(53, 162, 235)",
-      backgroundColor: "rgba(53, 162, 235, 0.5)",
+    id: 1,
+    label: "Bài đăng mới",
+    data: [0],
+    borderColor: "rgb(53, 162, 235)",
+    backgroundColor: "rgba(53, 162, 235, 0.5)",
   },
 ];
 
@@ -83,7 +84,19 @@ const NewUserChart = ({ className = "", setTotalRegiter }: UserChartProps) => {
     })
       .then((result) => result.json())
       .catch((e) => console.log(e));
-
+    if (dataTracking?.statusCode !== 200) {
+      adminNotify(dataTracking?.message, notifyType.ERROR);
+      setDataChart({
+        labels: newDataLabels,
+        datasets: [
+          {
+            ...datasets[0],
+            data: Array(newDataLabels.length).fill(0),
+          },
+        ],
+      });
+      return;
+    }
     if (dataTracking && dataTracking?.data?.reports?.length > 0) {
       const dataset = mapDataLabels.map((label) => {
         const isExisted = dataTracking?.data?.reports?.find(

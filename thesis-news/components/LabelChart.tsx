@@ -8,6 +8,7 @@ import { UserChartProps } from "@/types/newpost";
 import { TableHandle } from "./TableProvider";
 import HeaderChart, { showDataLabels } from "./HeaderChart";
 import LineChart from "./LineChart";
+import { adminNotify, notifyType } from "@/lib/format";
 
 const options: any = {
   scales: {
@@ -78,7 +79,19 @@ const LabelChart = ({ className = "", setTotalLabel }: UserChartProps) => {
     })
       .then((result) => result.json())
       .catch((e) => console.log(e));
-
+    if (dataTracking?.statusCode !== 200) {
+      adminNotify(dataTracking?.message, notifyType.ERROR);
+      setDataChart({
+        labels: dataChart.labels,
+        datasets: [
+          {
+            ...datasets[0],
+            data: Array(dataChart.labels.length).fill(0),
+          },
+        ],
+      });
+      return;
+    }
     if (dataTracking && dataTracking?.data?.reports?.length > 0) {
       const keys: any[] = [];
       const values: any[] = [];

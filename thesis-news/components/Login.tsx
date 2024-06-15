@@ -31,7 +31,10 @@ interface IFormInputs {
 
 const schema = yup
   .object({
-    email: yup.string().email().required("Trường bắt buộc, vui lòng nhập"),
+    email: yup
+      .string()
+      .email("Email không hợp lệ")
+      .required("Trường bắt buộc, vui lòng nhập"),
     password: yup.string().required("Trường bắt buộc, vui lòng nhập"),
   })
   .required();
@@ -207,7 +210,7 @@ const Login: React.FC = () => {
                       label="Email"
                       variant="outlined"
                       className="w-full"
-                      autoComplete="off" // Ngăn trình duyệt tự động điền
+                      autoComplete="on" // Ngăn trình duyệt tự động điền
                     />
                   )}
                 />
@@ -240,7 +243,7 @@ const Login: React.FC = () => {
                           </InputAdornment>
                         }
                         label="Mật khẩu"
-                        autoComplete="new-password"
+                        autoComplete="off"
                       />
                     </FormControl>
                   )}

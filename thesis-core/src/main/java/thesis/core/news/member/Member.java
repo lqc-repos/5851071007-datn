@@ -6,6 +6,7 @@ import lombok.*;
 import org.bson.types.ObjectId;
 import thesis.utils.dto.CommonDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -23,7 +24,10 @@ public class Member extends CommonDTO {
     private String roleId;
     private String authorId;
     private Boolean isActive;
-    private List<String> savedArticles;
-    private List<String> viewedArticles;
-    private List<String> publishedArticles;
+    @Builder.Default
+    private List<String> savedArticles = new ArrayList<>();
+    @Builder.Default
+    private List<String> viewedArticles = new ArrayList<>();
+    @Builder.Default
+    private List<String> publishedArticles = new ArrayList<>();
 }

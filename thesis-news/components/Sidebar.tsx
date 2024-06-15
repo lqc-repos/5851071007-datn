@@ -71,8 +71,8 @@ interface SidebarProps {
 
 const Sidebar = ({
   open,
-  onLogout = () => {},
-  toggleDrawer = () => {},
+  onLogout = () => { },
+  toggleDrawer = () => { },
   roleAssign = [],
 }: SidebarProps) => {
   const mapCodes = roleAssign.map((role) => role.code);
@@ -138,7 +138,7 @@ const Sidebar = ({
         </List>
 
         {/* Đăng xuất */}
-        <div className="flex flex-col">
+        {/* <div className="flex flex-col">
           <Divider />
           <ListItem disablePadding sx={{ border: "none" }}>
             <ListItemButton
@@ -152,7 +152,7 @@ const Sidebar = ({
               <ListItemText primary="Đăng xuất" />
             </ListItemButton>
           </ListItem>
-        </div>
+        </div> */}
       </div>
     </Drawer>
   );

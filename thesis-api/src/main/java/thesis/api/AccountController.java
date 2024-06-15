@@ -369,7 +369,7 @@ public class AccountController {
                     .statusCode(HttpStatus.OK.value())
                     .data(SearchEngineResult.builder()
                             .articles(articles)
-                            .total((long) articleIds.size())
+                            .total((long) (CollectionUtils.isNotEmpty(articleIds) ? articleIds.size() : 0))
                             .totalPage((articleIds.size() + command.getSize() - 1) / command.getSize())
                             .page(command.getPage())
                             .size(command.getSize())
@@ -425,12 +425,20 @@ public class AccountController {
             String otp = otpCacheService.generateOTP(4);
             try {
                 otpCacheService.storeOtp(command.getEmail(), otp);
-                mailSender.send(CommandMail.builder()
-                        .to(command.getEmail())
-                        .subject("Yêu cầu đổi mật khẩu")
-                        .otp(otp)
-                        .mailSenderType(MAIL_SENDER_TYPE.OTP)
-                        .build());
+                CompletableFuture.runAsync(() ->
+                {
+                    try {
+                        mailSender.send(CommandMail.builder()
+                                .to(command.getEmail())
+                                .subject("Yêu cầu đổi mật khẩu")
+                                .otp(otp)
+                                .mailSenderType(MAIL_SENDER_TYPE.OTP)
+                                .build());
+                    } catch (MessagingException e) {
+                        log.error("Send OTP failed");
+                        throw new RuntimeException(e);
+                    }
+                });
             } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new Exception("Gửi otp thất bại, vui lòng thử lại");

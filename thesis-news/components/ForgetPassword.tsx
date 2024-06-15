@@ -2,20 +2,36 @@ import { adminNotify, notifyType } from "@/lib/format";
 import { Button, TextField } from "@mui/material";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 interface IFormInputs {
   email: string;
   otp: string;
 }
 
+const schema = yup
+  .object({
+    email: yup
+      .string()
+      .email("Email không hợp lệ")
+      .required("Trường bắt buộc, vui lòng nhập"),
+  })
+  .required();
+
 const ForgetPassword: React.FC<{
   handleChangeNewPassword: (e: string) => void;
-}> = ({ handleChangeNewPassword}) => {
-  const { handleSubmit, control } = useForm<IFormInputs>({
+}> = ({ handleChangeNewPassword }) => {
+  const {
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<IFormInputs>({
     defaultValues: {
       email: "",
       otp: "",
     },
+    resolver: yupResolver(schema),
   });
 
   const [isSendOtp, setIsSendOtp] = useState(false);
@@ -96,6 +112,7 @@ const ForgetPassword: React.FC<{
             />
           )}
         />
+        <p className="text-[red]">{errors.email?.message}</p>
         {isSendOtp && (
           <Controller
             name="otp"

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { formatDate } from "@/lib/format";
+import { adminNotify, formatDate, notifyType } from "@/lib/format";
 import { MenuItem, Select, SelectChangeEvent, Switch } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
@@ -88,9 +88,11 @@ const UserColumn = () => {
           );
 
           if (resp?.statusCode !== 200) {
+            adminNotify(resp?.message, notifyType.ERROR);
           }
           if (resp?.statusCode === 200) {
             setRole(resp?.data?.role?.role);
+            adminNotify(resp?.message, notifyType.SUCCESS);
           }
           setIsEditRole(false);
         };
@@ -165,9 +167,11 @@ const UserColumn = () => {
             "status"
           );
           if (resp?.statusCode !== 200) {
+            adminNotify(resp?.message, notifyType.ERROR);
           }
           if (resp?.statusCode === 200) {
             setIsCheck(resp?.data?.member?.isActive);
+            adminNotify(resp?.message, notifyType.SUCCESS);
           }
         };
         return (

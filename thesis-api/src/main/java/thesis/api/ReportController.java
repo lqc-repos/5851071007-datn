@@ -25,6 +25,7 @@ import thesis.utils.dto.ResponseDTO;
 
 import java.text.SimpleDateFormat;
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @RestController
@@ -74,6 +75,14 @@ public class ReportController {
             if (command.getFromDate() == null || command.getToDate() == null
                     || command.getToDate() < command.getFromDate())
                 throw new Exception("Ngày bắt đầu và ngày kết thúc không hợp lệ");
+            {
+                ZonedDateTime dateTime1 = Instant.ofEpochSecond(command.getFromDate()).atZone(ZONE_OFFSET);
+                ZonedDateTime dateTime2 = Instant.ofEpochSecond(command.getToDate()).atZone(ZONE_OFFSET);
+                if (ChronoUnit.DAYS.between(dateTime1, dateTime2) > 30) {
+                    throw new Exception("Thống kê chỉ khả dụng trong phạm vi 30 ngày");
+                }
+            }
+
             if (StringUtils.isEmpty(command.getReportType()))
                 throw new Exception("Vui lòng chọn loại báo cáo");
 
