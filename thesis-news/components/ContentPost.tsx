@@ -20,10 +20,9 @@ const ContentPost: React.FC<{ data: string; images: any }> = ({
     ) {
       const imageElement = `
         <div style="text-align: center;">
-          <img alt=""image"" src=${images[imageIndex]?.url || ""} />
-          <p style="margin-bottom: 5px;"><em>${
-            images[imageIndex]?.description || ""
-          }</em></p>
+          <img alt="image" src=${images[imageIndex]?.url || ""}  style="display: block; margin: 0 auto;" />
+          <p style="margin-bottom: 5px;"><em>${images[imageIndex]?.description || ""
+        }</em></p>
         </div>`;
       dataFormat.splice(i, 0, imageElement);
       imageIndex++;
