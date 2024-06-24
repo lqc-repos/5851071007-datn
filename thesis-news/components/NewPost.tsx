@@ -10,6 +10,7 @@ import ArticleSave from "./ArticleSave";
 import ArticleSee from "./AricleSee";
 import CreatePost from "./CreatePost";
 import AriclePushlish from "./AriclePushlish";
+import PersonalReport from "./PersonalReport";
 
 const NewPost: React.FC = () => {
   const [dataCookie, setDataCookie] = useState<any>(null);
@@ -77,6 +78,9 @@ const NewPost: React.FC = () => {
                       <ListItemText>Bài viết đã tạo</ListItemText>
                     </MenuItem>
                   )}
+                  <MenuItem onClick={() => handleClick(5)}>
+                    <ListItemText>Thống kê tìm kiếm</ListItemText>
+                  </MenuItem>
                 </MenuList>
               </div>
             </div>
@@ -126,6 +130,14 @@ const NewPost: React.FC = () => {
                     style={{ minHeight: "calc(-57px + 100vh)" }}
                   >
                     <AriclePushlish />
+                  </div>
+                )}
+                {value === 5 && (
+                  <div
+                    className="flex-col flex"
+                    style={{ minHeight: "calc(-57px + 100vh)" }}
+                  >
+                    <PersonalReport />
                   </div>
                 )}
               </div>

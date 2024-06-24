@@ -2,6 +2,7 @@ package thesis.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.AggregateIterable;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -179,7 +180,8 @@ public class ReportController {
                     }
                 }
             }
-
+            if (CollectionUtils.isEmpty(reports))
+                throw new Exception("Không có dữ liệu");
             return new ResponseEntity<>(ResponseDTO.builder()
                     .statusCode(HttpStatus.OK.value())
                     .data(ReportResponse.builder().reports(reports)

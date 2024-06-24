@@ -63,6 +63,7 @@ const LabelChart = ({ className = "", setTotalLabel }: UserChartProps) => {
     const fromDate = moment(rangeValues[0]).format("MM/DD/YYYY");
     const toDate = moment(rangeValues[1]).format("MM/DD/YYYY");
     const newToDate = moment(rangeValues[1]).format(formatDateRequest);
+    const memberId = JSON.parse(localStorage.getItem("user") as any);
 
     const dataTracking = await fetch("http://localhost:8080/report/get", {
       method: "POST",
@@ -75,6 +76,7 @@ const LabelChart = ({ className = "", setTotalLabel }: UserChartProps) => {
         reportType: "label",
         fromDate: moment(fromDate, "MM/DD/YYYY").valueOf() / 1000,
         toDate: moment(toDate, "MM/DD/YYYY").valueOf() / 1000,
+        memberId: memberId?.member?.id,
       }),
     })
       .then((result) => result.json())
