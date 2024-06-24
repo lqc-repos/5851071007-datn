@@ -1,4 +1,4 @@
-"use client";
+import React, { useState } from "react";
 import {
   Box,
   CircularProgress,
@@ -8,9 +8,8 @@ import {
   Paper,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { useState } from "react";
-import CardIndex from "./CardIndex";
 import { useForm, Controller } from "react-hook-form";
+import CardIndex from "./CardIndex";
 
 const Search: React.FC = () => {
   const { control, handleSubmit } = useForm();
@@ -20,46 +19,55 @@ const Search: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [totalData, setTotalData] = useState(1);
 
-  const getData = async (value: any) => {
-    const dataSearch = {
-      search: value?.search,
-      size: 10,
-      page: page,
-    };
-    const resp = await fetch(`http://localhost:8080/article/search`, {
-      method: "POST",
-      mode: "cors",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataSearch),
-    })
-      .then((res) => res.json())
-      .catch((e) => console.log(e));
-
-    setData(resp?.data?.articles || []);
-    setTotalData(resp?.data?.totalPage || 1);
-    setIsLoading(false);
+  const getData = async (value: any, currentPage: number) => {
+    try {
+      const dataSearch = {
+        search: value?.search,
+        size: 10,
+        page: currentPage,
+      };
+      const resp = await fetch(`http://localhost:8080/article/search`, {
+        method: "POST",
+        mode: "cors",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataSearch),
+      });
+      if (!resp.ok) {
+        throw new Error("Failed to fetch data");
+      }
+      const responseData = await resp.json();
+      setData(responseData?.data?.articles || []);
+      setTotalData(responseData?.data?.totalPage || 1);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
-  const onSubmit = handleSubmit((data) => {
-    if (!data.search) return;
+
+  const onSubmit = handleSubmit((formData) => {
+    if (!formData.search) return;
     setIsLoading(true);
-    setValue(data);
-    getData(data);
+    setValue(formData);
+    setPage(1); // Reset page to 1 when submitting new search
+    getData(formData, 1); // Fetch data for the first page
   });
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       event.preventDefault();
       onSubmit();
     }
   };
 
   const handleChange = (_event: React.ChangeEvent<unknown>, valuePage: number) => {
-    setPage(valuePage);
-    getData(value);
+    setPage(valuePage); // Update page state
+    getData(value, valuePage); // Fetch data for the selected page
   };
+
   return (
     <div>
       <Paper
