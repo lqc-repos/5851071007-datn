@@ -29,6 +29,7 @@ import thesis.utils.constant.REPORT_TYPE;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -152,7 +153,9 @@ public class SearchEngineServiceImp implements SearchEngineService {
             articlePerPage.put(article.getId().toString(), article);
         }
 
-        processReportedLabel(labelsToReport);
+        if (command.getPage() <= 1) {
+            CompletableFuture.runAsync(() -> processReportedLabel(labelsToReport));
+        }
 
         return Optional.of(SearchEngineResult.builder()
                 .search(command.getSearch())
