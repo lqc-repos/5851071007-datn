@@ -5,6 +5,7 @@ import com.mongodb.client.AggregateIterable;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,10 @@ import thesis.core.news.member.Member;
 import thesis.core.news.member.repository.MemberRepository;
 import thesis.core.news.report.news_report.NewsReport;
 import thesis.core.news.report.news_report.repository.NewsReportRepository;
+import thesis.core.news.report.personal_report.PersonalReport;
+import thesis.core.news.report.personal_report.repository.PersonalReportRepository;
 import thesis.core.news.response.ReportResponse;
+import thesis.utils.constant.DEFAULT_ROLE;
 import thesis.utils.constant.REPORT_TYPE;
 import thesis.utils.dto.ResponseDTO;
 
@@ -37,6 +41,8 @@ public class ReportController {
 
     @Autowired
     private NewsReportRepository newsReportRepository;
+    @Autowired
+    private PersonalReportRepository personalReportRepository;
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
@@ -101,12 +107,26 @@ public class ReportController {
                 $eq.put("$gte", startOfDay);
                 query.put("reportDate", $eq);
 
-                List<NewsReport> newsReports = newsReportRepository.find(query, new Document("reportDate", -1), new Document());
+
+                Member member = StringUtils.isNotBlank(command.getMemberId())
+                        ? memberRepository.findOne(new Document("_id", new ObjectId(command.getMemberId())), new Document())
+                        .orElse(null)
+                        : null;
 
                 Map<String, Long> countByLabel = new HashMap<>();
-                newsReports.forEach(newsReport ->
-                        newsReport.getLabelCounts().forEach((key, value) -> countByLabel.merge(key, value, Long::sum))
-                );
+
+                if (member == null || DEFAULT_ROLE.ADMIN.getRoleId().equals(member.getRoleId())) {
+                    List<NewsReport> newsReports = newsReportRepository.find(query, new Document("reportDate", -1), new Document());
+                    newsReports.forEach(newsReport ->
+                            newsReport.getLabelCounts().forEach((key, value) -> countByLabel.merge(key, value, Long::sum))
+                    );
+                } else {
+                    query.put("memberId", member.getId().toHexString());
+                    List<PersonalReport> personalReports = personalReportRepository.find(query, new Document("reportDate", -1), new Document());
+                    personalReports.forEach(newsReport ->
+                            newsReport.getLabelCounts().forEach((key, value) -> countByLabel.merge(key, value, Long::sum))
+                    );
+                }
 
                 reports = countByLabel.entrySet().stream()
                         .map(entry -> ReportResponse.Report.builder().key(entry.getKey()).value(entry.getValue()).build())

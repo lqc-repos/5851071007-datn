@@ -18,6 +18,7 @@ const Search: React.FC = () => {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [totalData, setTotalData] = useState(1);
+  const memberId = JSON.parse(localStorage.getItem("user") as any);
 
   const getData = async (value: any, currentPage: number) => {
     try {
@@ -25,6 +26,7 @@ const Search: React.FC = () => {
         search: value?.search,
         size: 10,
         page: currentPage,
+        memberId: memberId?.member?.id,
       };
       const resp = await fetch(`http://localhost:8080/article/search`, {
         method: "POST",

@@ -50,8 +50,11 @@ import thesis.core.news.member.Member;
 import thesis.core.news.member.repository.MemberRepository;
 import thesis.core.news.report.news_report.NewsReport;
 import thesis.core.news.report.news_report.repository.NewsReportRepository;
+import thesis.core.news.report.personal_report.PersonalReport;
+import thesis.core.news.report.personal_report.repository.PersonalReportRepository;
 import thesis.core.news.response.AccountResponse;
 import thesis.core.news.response.OtpResponse;
+import thesis.core.news.response.ReportResponse;
 import thesis.core.news.response.UserResponse;
 import thesis.core.news.role.Role;
 import thesis.core.news.role.repository.RoleRepository;
@@ -73,6 +76,7 @@ import thesis.utils.otp.OtpCacheService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -84,6 +88,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class AccountController {
     private static final ZoneOffset ZONE_OFFSET = ZoneOffset.of("+07:00");
+    static int duplicateSave = 0;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -101,6 +106,8 @@ public class AccountController {
     private OtpCacheService otpCacheService;
     @Autowired
     private NewsReportRepository newsReportRepository;
+    @Autowired
+    private PersonalReportRepository personalReportRepository;
     //nlp process
     @Autowired
     private NLPService nlpService;
@@ -282,7 +289,8 @@ public class AccountController {
                     .orElseThrow(() -> new Exception("Bài báo không tồn tại"));
 
             if ("view".equals(command.getType())) {
-                processReportedLabel(Set.of(article.getId().toHexString()));
+                CompletableFuture.runAsync(() -> processReportedLabel(Set.of(article.getId().toHexString())));
+                CompletableFuture.runAsync(() -> processPersonalReportedLabel(command.getMemberId(), Set.of(article.getId().toHexString())));
             }
             if (StringUtils.isBlank(command.getMemberId()))
                 return new ResponseEntity<>(ResponseDTO.builder().build(), HttpStatus.OK);
@@ -697,8 +705,6 @@ public class AccountController {
         }
     }
 
-    static int duplicateSave = 0;
-
     private void processReportedLabel(Set<String> labels) {
         if (duplicateSave % 2 != 0) {
             duplicateSave = 0;
@@ -734,6 +740,48 @@ public class AccountController {
         }
 
         newsReportRepository.update(new Document("_id", newsReport.getId()), new Document("labelCounts", newsReport.getLabelCounts()));
+    }
+
+    private void processPersonalReportedLabel(String memberId, Set<String> labels) {
+        if (StringUtils.isBlank(memberId))
+            return;
+
+        if (duplicateSave % 2 != 0) {
+            duplicateSave = 0;
+            return;
+        }
+        duplicateSave++;
+        long currentTime = System.currentTimeMillis() / 1000;
+        long startOfDay = LocalDateTime.ofEpochSecond(currentTime, 0, ZONE_OFFSET).toLocalDate()
+                .atStartOfDay().toEpochSecond(ZONE_OFFSET);
+
+        if (CollectionUtils.isEmpty(labels))
+            return;
+
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("reportDate", startOfDay);
+        queryMap.put("reportType", REPORT_TYPE.VIEW.getValue());
+        queryMap.put("memberId", memberId);
+        Map<String, Object> sortMap = new HashMap<>();
+        sortMap.put("updatedDate", -1);
+        sortMap.put("createdDate", -1);
+
+        PersonalReport personalReport = personalReportRepository.findOne(queryMap, sortMap).orElse(null);
+        if (personalReport == null) {
+            personalReport = PersonalReport.builder()
+                    .reportDate(startOfDay)
+                    .reportType(REPORT_TYPE.VIEW.getValue())
+                    .memberId(memberId)
+                    .labelCounts(new HashMap<>())
+                    .build();
+            personalReportRepository.insert(personalReport);
+        }
+
+        for (String label : labels) {
+            personalReport.getLabelCounts().compute(label, (k, v) -> (v == null) ? 1 : v + 1);
+        }
+
+        personalReportRepository.update(new Document("_id", personalReport.getId()), new Document("labelCounts", personalReport.getLabelCounts()));
     }
 
     private void processPostedArticle(Article article) {

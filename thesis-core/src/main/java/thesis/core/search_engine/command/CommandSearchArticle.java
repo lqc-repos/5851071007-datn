@@ -15,4 +15,5 @@ public class CommandSearchArticle {
     private Integer page;
     private Integer size;
     private Boolean isCustomTag;
+    private String memberId;
 }

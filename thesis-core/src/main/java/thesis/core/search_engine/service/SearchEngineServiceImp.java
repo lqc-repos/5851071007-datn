@@ -19,6 +19,8 @@ import thesis.core.article.model.topic.Topic;
 import thesis.core.article.service.ArticleService;
 import thesis.core.news.report.news_report.NewsReport;
 import thesis.core.news.report.news_report.repository.NewsReportRepository;
+import thesis.core.news.report.personal_report.PersonalReport;
+import thesis.core.news.report.personal_report.repository.PersonalReportRepository;
 import thesis.core.nlp.dto.AnnotatedWord;
 import thesis.core.nlp.service.NLPService;
 import thesis.core.search_engine.SearchEngine;
@@ -44,6 +46,8 @@ public class SearchEngineServiceImp implements SearchEngineService {
     private SearchEngine searchEngine;
     @Autowired
     private NewsReportRepository newsReportRepository;
+    @Autowired
+    private PersonalReportRepository personalReportRepository;
 
     @Override
     public Optional<SearchEngineResult> searchArticle(CommandSearchArticle command) throws Exception {
@@ -155,6 +159,7 @@ public class SearchEngineServiceImp implements SearchEngineService {
 
         if (command.getPage() <= 1) {
             CompletableFuture.runAsync(() -> processReportedLabel(labelsToReport));
+            CompletableFuture.runAsync(() -> processPersonalReportedLabel(command.getMemberId(), labelsToReport));
         }
 
         return Optional.of(SearchEngineResult.builder()
@@ -228,5 +233,41 @@ public class SearchEngineServiceImp implements SearchEngineService {
         }
 
         newsReportRepository.update(new Document("_id", newsReport.getId()), new Document("labelCounts", newsReport.getLabelCounts()));
+    }
+
+    private void processPersonalReportedLabel(String memberId, Set<String> labels) {
+        if (StringUtils.isBlank(memberId))
+            return;
+        long currentTime = System.currentTimeMillis() / 1000;
+        long startOfDay = LocalDateTime.ofEpochSecond(currentTime, 0, ZONE_OFFSET).toLocalDate()
+                .atStartOfDay().toEpochSecond(ZONE_OFFSET);
+
+        if (CollectionUtils.isEmpty(labels))
+            return;
+
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("reportDate", startOfDay);
+        queryMap.put("reportType", REPORT_TYPE.LABEL.getValue());
+        queryMap.put("memberId", memberId);
+        Map<String, Object> sortMap = new HashMap<>();
+        sortMap.put("updatedDate", -1);
+        sortMap.put("createdDate", -1);
+
+        PersonalReport personalReport = personalReportRepository.findOne(queryMap, sortMap).orElse(null);
+        if (personalReport == null) {
+            personalReport = PersonalReport.builder()
+                    .reportDate(startOfDay)
+                    .reportType(REPORT_TYPE.LABEL.getValue())
+                    .labelCounts(new HashMap<>())
+                    .memberId(memberId)
+                    .build();
+            personalReportRepository.insert(personalReport);
+        }
+
+        for (String label : labels) {
+            personalReport.getLabelCounts().compute(label, (k, v) -> (v == null) ? 1 : v + 1);
+        }
+
+        personalReportRepository.update(new Document("_id", personalReport.getId()), new Document("labelCounts", personalReport.getLabelCounts()));
     }
 }

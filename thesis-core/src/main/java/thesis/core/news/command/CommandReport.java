@@ -13,4 +13,5 @@ public class CommandReport {
     private Long fromDate;
     private Long toDate;
     private String reportType;
+    private String memberId;
 }
